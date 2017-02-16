@@ -13,9 +13,9 @@ stage('Ubuntu testing') {
             def testEnv = docker.build 'ledger-test'
             echo 'Build docker image: done'
             testEnv.inside {
-                echo 'Creating virtual environment...'
-                sh 'virtualenv -p python3.5 test'
-                sh '. test/bin/activate'
+                echo 'Switching to virtual environment...'
+                sh 'mkvirtualenv -p python3.5 test'
+                sh 'workon test'
                 echo 'Switching to virtual environment: done'
 
                 echo 'Install deps...'
