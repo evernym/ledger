@@ -11,4 +11,4 @@ RUN apt-get install -y python-setuptools
 RUN apt-get install -y bash
 RUN pip3 install virtualenvwrapper
 RUN echo 'WORKON_HOME=/opt/.virtualenvs' >> /etc/environment
-RUN /bin/bash source /usr/local/bin/virtualenvwrapper.sh
+RUN ["/bin/bash", "-c", "source /usr/local/bin/virtualenvwrapper.sh"]
