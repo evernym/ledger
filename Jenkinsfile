@@ -14,8 +14,8 @@ stage('Ubuntu testing') {
             echo 'Build docker image: done'
             testEnv.inside {
                 echo 'Install deps...'
-                sh 'python3 setup.py install'
-                sh 'pip3 install pytest'
+                sh 'sudo python3 setup.py install'
+                sh 'sudo pip3 install pytest'
                 echo 'Install deps: done'
 
                 echo 'Testing...'
