@@ -15,10 +15,11 @@ stage('Ubuntu testing') {
             testEnv.inside {
                 echo 'Install deps...'
                 python3 setup.py install
+                pip3 install pytest
                 echo 'Install deps: done'
 
                 echo 'Testing...'
-                python3 setup.py pytest --junitxml=.
+                pytest --junitxml=./test-result
                 echo 'Testing: done'
             }
         }
