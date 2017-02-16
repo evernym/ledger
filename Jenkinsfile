@@ -21,6 +21,10 @@ stage('Ubuntu testing') {
                 sh 'test/bin/python setup.py install'
                 echo 'Install deps: done'
 
+                echo 'Install pytest...'
+                sh 'test/bin/pip install pytest'
+                echo 'Install pytest: done'
+
                 echo 'Testing...'
                 sh 'test/bin/python -m pytest --junitxml=./test-result'
                 echo 'Testing: done'

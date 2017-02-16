@@ -10,4 +10,3 @@ RUN apt-get install -y python3-pip
 RUN apt-get install -y python-setuptools
 RUN apt-get install -y bash
 RUN pip3 install virtualenv
-RUN pip3 install pytest
