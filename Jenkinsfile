@@ -15,7 +15,7 @@ stage('Ubuntu testing') {
             testEnv.inside {
                 echo 'Creating virtual environment...'
                 sh 'virtualenv -p python3.5 test'
-                sh 'source test/bin/activate'
+                sh '. test/bin/activate'
                 echo 'Switching to virtual environment: done'
 
                 echo 'Install deps...'
