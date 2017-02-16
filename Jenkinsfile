@@ -49,14 +49,14 @@ stage('Publish artifacts') {
         
         stage('Publish pipy') {
             echo 'Publish to pipy...'
-            sh ./ci/prepare-pypi-package.sh . $BUILD_NUMBER
-            sh ./ci/upload-pypi-package.sh .
+            sh 'ci/prepare-pypi-package.sh . $BUILD_NUMBER'
+            sh 'ci/upload-pypi-package.sh .'
             echo 'Publish pipy: done'
         }
 
         stage('Building debs') {
             echo 'Building debs...'
-            git clone 'https://github.com/evernym/sovrin-packaging.git'
+            sh 'git clone https://github.com/evernym/sovrin-packaging.git'
             // sh ./sovrin-packaging/pack-ledger.sh $BUILD_NUMBER
             echo 'Building debs: done'
         }
