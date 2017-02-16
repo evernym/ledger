@@ -14,8 +14,10 @@ stage('Ubuntu testing') {
             echo 'Build docker image: done'
             testEnv.inside {
                 echo 'Switching to virtual environment...'
-                sh 'virtualenv -p python3.5 test'
-                sh '. test/bin/activate'
+                sh 'export WORKON_HOME=~/Envs'
+                sh 'mkdir -p $WORKON_HOME'
+                sh '. /usr/local/bin/virtualenvwrapper.sh'
+                sh 'mkvirtualenv -p python3.5 test'
                 echo 'Switching to virtual environment: done'
 
                 echo 'Install deps...'
