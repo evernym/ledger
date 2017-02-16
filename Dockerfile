@@ -11,4 +11,4 @@ RUN apt-get install -y python-setuptools
 RUN pip3 install virtualenvwrapper
 RUN echo 'export WORKON_HOME=$HOME/.virtualenvs' >> ~/.bashrc
 RUN echo 'source /usr/local/bin/virtualenvwrapper.sh' >> ~/.bashrc
-RUN source ~/.bashrc
+RUN . ~/.bashrc
