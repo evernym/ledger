@@ -10,7 +10,7 @@ stage('Ubuntu testing') {
 
         stage('Install dependencies and test...') {
             echo 'Build docker image...'
-            def testEnv = docker.build -f 'ci/ledger-ubuntu.dockerfile' .
+            def testEnv = docker.build .
             echo 'Build docker image: done'
             testEnv.inside {
                 echo 'Install deps...'
