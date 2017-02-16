@@ -14,12 +14,12 @@ stage('Ubuntu testing') {
             echo 'Build docker image: done'
             testEnv.inside {
                 echo 'Install deps...'
-                python3 setup.py install
-                pip3 install pytest
+                python3 'setup.py install'
+                pip3 'install pytest'
                 echo 'Install deps: done'
 
                 echo 'Testing...'
-                python3 -m pytest --junitxml=./test-result
+                python3 '-m pytest --junitxml=./test-result'
                 echo 'Testing: done'
             }
         }
