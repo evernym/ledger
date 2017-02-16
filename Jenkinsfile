@@ -26,7 +26,7 @@ stage('Ubuntu testing') {
                 echo 'Install pytest: done'
 
                 echo 'Testing...'
-                sh 'test/bin/python -m pytest'
+                sh 'cd ledger && test/bin/python -m pytest --junitxml=./test-result'
                 echo 'Testing: done'
             }
         }
