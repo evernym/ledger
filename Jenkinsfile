@@ -49,6 +49,7 @@ stage('Publish artifacts') {
         
         stage('Publish pipy') {
             echo 'Publish to pipy...'
+            sh 'chmod -R 777 ci' 
             sh 'ci/prepare-pypi-package.sh . $BUILD_NUMBER'
             sh 'ci/upload-pypi-package.sh .'
             echo 'Publish pipy: done'
