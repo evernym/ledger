@@ -19,7 +19,7 @@ stage('Ubuntu testing') {
                 echo 'Install deps: done'
 
                 echo 'Testing...'
-                pytest --junitxml=./test-result
+                python3 -m pytest --junitxml=./test-result
                 echo 'Testing: done'
             }
         }
