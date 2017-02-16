@@ -9,6 +9,5 @@ RUN apt-get install -y python3.5
 RUN apt-get install -y python3-pip
 RUN apt-get install -y python-setuptools
 RUN apt-get install -y bash
-RUN pip3 install virtualenvwrapper
-RUN echo 'WORKON_HOME=/opt/.virtualenvs' >> /etc/environment
-RUN ["/bin/bash", "-c", "source /usr/local/bin/virtualenvwrapper.sh"]
+RUN pip3 install virtualenv
+RUN pip3 install pytest

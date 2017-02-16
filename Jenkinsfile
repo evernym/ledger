@@ -14,16 +14,15 @@ stage('Ubuntu testing') {
             echo 'Build docker image: done'
             testEnv.inside {
                 echo 'Creating to virtual environment...'
-                sh 'mkvirtualenv -p python3.5 test'
+                sh 'virtualenv -p python3.5 test'
                 echo 'Creating to virtual environment: done'
 
                 echo 'Install deps...'
-                sh 'python3 setup.py install'
-                sh 'pip3 install pytest'
+                sh 'test/bin/python setup.py install'
                 echo 'Install deps: done'
 
                 echo 'Testing...'
-                sh 'python3 -m pytest --junitxml=./test-result'
+                sh 'test/bin/python -m pytest --junitxml=./test-result'
                 echo 'Testing: done'
             }
         }
