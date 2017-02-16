@@ -9,4 +9,3 @@ RUN apt-get install -y python3.5
 RUN apt-get install -y python3-pip
 RUN apt-get install -y python-setuptools
 RUN pip3 install virtualenv
-RUN virtualenv -p python3.5 test
