@@ -14,7 +14,7 @@ stage('Ubuntu testing') {
             echo 'Build docker image: done'
             testEnv.inside {
                 echo 'Switching to virtual environment...'
-                sh 'bin/activate test'
+                sh 'activate test'
                 echo 'Switching to virtual environment: done'
 
                 echo 'Install deps...'
