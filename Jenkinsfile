@@ -49,7 +49,7 @@ stage('Publish artifacts') {
 
         stage('Building debs') {
             echo 'Building debs...'
-            git clone https://github.com/evernym/sovrin-packaging.git
+            git clone 'https://github.com/evernym/sovrin-packaging.git'
             // sh ./sovrin-packaging/pack-ledger.sh $BUILD_NUMBER
             echo 'Building debs: done'
         }
