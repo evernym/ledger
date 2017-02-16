@@ -1,27 +1,43 @@
 echo 'Ledger build...'
 
-node {
+stage('Ubuntu testing') {
+    node {
+        stage('Checkout csm') {
+            echo 'Checkout csm...'
+            checkout scm
+            echo 'Checkout csm: done'
+        }
 
-    stage('Checkout csm') {
-        echo 'Checkout csm...'
-        checkout scm
-        echo 'Checkout csm: done'
+        docker.image('python:3.5.3').inside {
+            stage('Install deps') {
+                echo 'Install deps...'
+                //sh 'python setup.py install' 
+                echo 'Install deps: done'
+            }
+            
+            stage('Test') {
+                echo 'Testing...'
+                //sh 'python setup.py pytest' 
+                echo 'Testesting: done'
+            }
+        }
+
+        stage('Cleanup') {
+            echo 'Cleanup workspace...'
+            step([$class: 'WsCleanup'])
+            echo 'Cleanup workspace: done'
+        }
     }
+}
 
-    docker.image('python:3.5.3').inside {
-
-        stage('Install deps') {
-            echo 'Install deps...'
-            //sh 'python setup.py install' 
-            echo 'Install deps: done'
+stage('Publish artifacts') {
+    node {
+        stage('Checkout csm') {
+            echo 'Checkout csm...'
+            checkout scm
+            echo 'Checkout csm: done'
         }
         
-        stage('Test') {
-            echo 'Testing...'
-            //sh 'python setup.py pytest' 
-            echo 'Testesting: done'
-        }
-
         stage('Publish pipy') {
             echo 'Publish to pipy...'
             //sh './publish_pipy.sh' 
@@ -33,12 +49,12 @@ node {
             //sh './publish_debs.sh' 
             echo 'Publish to pipy: done'
         }
-    }
 
-    stage('Cleanup') {
-        echo 'Cleanup workspace...'
-        step([$class: 'WsCleanup'])
-        echo 'Cleanup workspace: done'
+        stage('Cleanup') {
+            echo 'Cleanup workspace...'
+            step([$class: 'WsCleanup'])
+            echo 'Cleanup workspace: done'
+        }
     }
 }
 
