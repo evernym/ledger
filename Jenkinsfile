@@ -1,24 +1,25 @@
 echo 'Ledger build...'
 
 stage('Ubuntu testing') {
-    node {
+    node('ubuntu') {
         stage('Checkout csm') {
             echo 'Checkout csm...'
             checkout scm
             echo 'Checkout csm: done'
         }
 
-        docker.image('python:3.5.3').inside {
-            stage('Install deps') {
+        stage('Install dependencies and test...') {
+            echo 'Build docker image...'
+            def testEnv = docker.build 'ci/ledger-ubuntu.dockerfile'
+            echo 'Build docker image: done'
+            testEnv.inside {
                 echo 'Install deps...'
-                //sh 'python setup.py install' 
+                python3 setup.py install
                 echo 'Install deps: done'
-            }
-            
-            stage('Test') {
+
                 echo 'Testing...'
-                //sh 'python setup.py pytest' 
-                echo 'Testesting: done'
+                python3 setup.py pytest --junitxml=.
+                echo 'Testing: done'
             }
         }
 
@@ -31,7 +32,7 @@ stage('Ubuntu testing') {
 }
 
 stage('Publish artifacts') {
-    node {
+    node('deploy') {
         stage('Checkout csm') {
             echo 'Checkout csm...'
             checkout scm
@@ -40,14 +41,22 @@ stage('Publish artifacts') {
         
         stage('Publish pipy') {
             echo 'Publish to pipy...'
-            //sh './publish_pipy.sh' 
+            sh ./ci/prepare-pypi-package.sh . $BUILD_NUMBER
+            sh ./ci/upload-pypi-package.sh .
             echo 'Publish pipy: done'
         }
 
-        stage('Publish debs') {
-            echo 'Publish to pipy...'
-            //sh './publish_debs.sh' 
-            echo 'Publish to pipy: done'
+        stage('Building debs') {
+            echo 'Building debs...'
+            git clone https://github.com/evernym/sovrin-packaging.git
+            // sh ./sovrin-packaging/pack-ledger.sh $BUILD_NUMBER
+            echo 'Building debs: done'
+        }
+
+        stage('Publishing debs') {
+            echo 'Publish debs...'
+            // sh ./sovrin-packaging/upload-build.sh $BUILD_NUMBER
+            echo 'Publish debs: done'
         }
 
         stage('Cleanup') {
