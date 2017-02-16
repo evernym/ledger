@@ -13,9 +13,13 @@ stage('Ubuntu testing') {
             def testEnv = docker.build 'ledger-test'
             echo 'Build docker image: done'
             testEnv.inside {
+                echo 'Switching to virtual environment...'
+                sh 'bin/activate test'
+                echo 'Switching to virtual environment: done'
+
                 echo 'Install deps...'
-                sh 'sudo -H python3 setup.py install'
-                sh 'sudo -H pip3 install pytest'
+                sh 'python3 setup.py install'
+                sh 'pip3 install pytest'
                 echo 'Install deps: done'
 
                 echo 'Testing...'
