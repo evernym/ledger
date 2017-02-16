@@ -2,11 +2,10 @@
 FROM ubuntu:16.04
 
 # Install environment
-RUN apt-get update -y && apt-get install -y \
-  # common stuff
-    git \
-    wget \
-    python3.5 \
-    python3-pip \
-    sudo \
-    python-setuptools
+RUN apt-get update -y
+RUN apt-get install -y sudo
+RUN && apt-get install -y git
+RUN && apt-get install -y wget
+RUN && apt-get install -y python3.5
+RUN && apt-get install -y python3-pip
+RUN && apt-get install -y python-setuptools
