@@ -62,7 +62,9 @@ stage('Publish artifacts') {
 
         stage('Building debs') {
             echo 'Building debs...'
-            sh 'git clone https://github.com/evernym/sovrin-packaging.git'
+            withCredentials([usernameColonPassword(credentialsId: 'evernym-githib-user', variable: 'USERPASS')]) {
+                sh 'git clone https://$USERPASS@github.com/evernym/sovrin-packaging.git'
+            }
             // sh ./sovrin-packaging/pack-ledger.sh $BUILD_NUMBER
             echo 'Building debs: done'
         }
