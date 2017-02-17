@@ -40,8 +40,8 @@ node('ubuntu') {
 
 echo 'Ledger test: done'
 
-if (env.GIT_BRANCH != 'master' && env.GIT_BRANCH != 'dev') {
-    echo 'Ledger ' + env.GIT_BRANCH + ': nopublish'
+if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'dev') {
+    echo "Ledger ${env.BRANCH_NAME}: nopublish"
     return
 }
 
