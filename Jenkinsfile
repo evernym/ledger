@@ -45,7 +45,7 @@ node('ubuntu') {
 echo 'Ledger test: done'
 
 if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'dev') {
-    echo "Ledger ${env.BRANCH_NAME}: nopublish"
+    echo "Ledger ${env.BRANCH_NAME}: no publish"
     return
 }
 
