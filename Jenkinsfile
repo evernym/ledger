@@ -18,7 +18,7 @@ node('ubuntu') {
 
             stage('Ubuntu Test: Test') {
                 try {
-                    sh 'cd ledger && ../test/bin/python -m pytest --junitxml=./test-result.xml'
+                    sh 'cd ledger && ../test/bin/python -m pytest --junitxml=../test-result.xml'
                 }
                 finally {
                     junit 'test-result.xml'
