@@ -1,94 +1,89 @@
+#!groovy​
+
 echo 'Ledger test...'
 
-node('ubuntu') {
-    stage('Ubuntu Test: Checkout csm') {
-        echo 'Checkout csm...'
-        checkout scm
-        echo 'Checkout csm: done'
-    }
-
-    stage('Ubuntu Test: Build docker image') {
-        echo 'Build docker image...'
-        sh 'ln -s ci/ledger-ubuntu.dockerfile Dockerfile'
-        def testEnv = docker.build 'ledger-test'
-        echo 'Build docker image: done'
-        testEnv.inside {
-            stage('Ubuntu Test: Install dependencies') {
-                echo 'Creating to virtual environment...'
-                sh 'virtualenv -p python3.5 test'
-                echo 'Creating to virtual environment: done'
-
-                echo 'Install deps...'
-                sh 'test/bin/python setup.py install'
-                echo 'Install deps: done'
-
-                echo 'Install pytest...'
-                sh 'test/bin/pip install pytest'
-                echo 'Install pytest: done'
+parallel 'ubuntu-test':{
+    node('ubuntu') {
+        try {
+            stage('Ubuntu Test: Checkout csm') {
+                checkout scm
             }
 
-            stage('Ubuntu Test: Test') {
-                echo 'Testing...'
-                sh 'cd ledger && ../test/bin/python -m pytest --junitxml=./test-result'
-                echo 'Testing: done'
+            stage('Ubuntu Test: Build docker image') {
+                sh 'ln -sf ci/ledger-ubuntu.dockerfile Dockerfile'
+                def testEnv = docker.build 'ledger-test'
+                
+                testEnv.inside {
+                    stage('Ubuntu Test: Install dependencies') {
+                        sh 'virtualenv -p python3.5 test'
+                        sh 'test/bin/python setup.py install'
+                        sh 'test/bin/pip install pytest'
+                    }
+
+                    stage('Ubuntu Test: Test') {
+                        try {
+                            sh 'cd ledger && ../test/bin/python -m pytest --junitxml=../test-result.xml'
+                        }
+                        finally {
+                            junit 'test-result.xml'
+                        }
+                    }
+                }
             }
         }
-    }
-
-    stage('Ubuntu Test: Cleanup') {
-        echo 'Cleanup workspace...'
-        step([$class: 'WsCleanup'])
-        echo 'Cleanup workspace: done'
-    }
+        finally {
+            stage('Ubuntu Test: Cleanup') {
+                step([$class: 'WsCleanup'])
+            }
+        }
+    }   
+}, 
+'windows-test':{
+    echo 'TODO: Implement me'
 }
 
 echo 'Ledger test: done'
 
-if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'dev') {
-    echo "Ledger ${env.BRANCH_NAME}: no publish"
+if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'stable') {
+    echo "Ledger ${env.BRANCH_NAME}: skip publishing"
     return
 }
 
 echo 'Ledger build...'
 
 node('ubuntu') {
-    stage('Publish: Checkout csm') {
-        echo 'Checkout csm...'
-        checkout scm
-        echo 'Checkout csm: done'
-    }
-    
-    stage('Publish: Publish pipy') {
-        echo 'Publish to pipy...'
-        sh 'chmod -R 777 ci'
-        withCredentials([file(credentialsId: 'pypi_credentials', variable: 'FILE')]) {
-            sh 'ln -sf $FILE $HOME/.pypirc' 
-            sh 'ci/prepare-pypi-package.sh . $BUILD_NUMBER'
-            sh 'ci/upload-pypi-package.sh .'
-            sh 'rm -f $HOME/.pypirc'
+    try {
+        stage('Publish: Checkout csm') {
+            checkout scm
         }
-        echo 'Publish pipy: done'
-    }
-
-    stage('Publish: Building debs') {
-        echo 'Building debs...'
-        withCredentials([usernameColonPassword(credentialsId: 'evernym-githib-user', variable: 'USERPASS')]) {
-            sh 'git clone https://$USERPASS@github.com/evernym/sovrin-packaging.git'
+        
+        stage('Publish: Publish pipy') {
+            sh 'chmod -R 777 ci'
+            withCredentials([file(credentialsId: 'pypi_credentials', variable: 'FILE')]) {
+                sh 'ln -sf $FILE $HOME/.pypirc' 
+                sh 'ci/prepare-pypi-package.sh . $BUILD_NUMBER'
+                sh 'ci/upload-pypi-package.sh .'
+                sh 'rm -f $HOME/.pypirc'
+            }
         }
-        // sh ./sovrin-packaging/pack-ledger.sh $BUILD_NUMBER
-        echo 'Building debs: done'
-    }
 
-    stage('Publish: Publishing debs') {
-        echo 'Publish debs...'
-        // sh ./sovrin-packaging/upload-build.sh $BUILD_NUMBER
-        echo 'Publish debs: done'
-    }
+        stage('Publish: Building debs') {
+            withCredentials([usernameColonPassword(credentialsId: 'evernym-githib-user', variable: 'USERPASS')]) {
+                sh 'git clone https://$USERPASS@github.com/evernym/sovrin-packaging.git'
+            }
+            echo 'TODO: Implement me'
+            // sh ./sovrin-packaging/pack-ledger.sh $BUILD_NUMBER
+        }
 
-    stage('Publish: Cleanup') {
-        echo 'Cleanup workspace...'
-        step([$class: 'WsCleanup'])
-        echo 'Cleanup workspace: done'
+        stage('Publish: Publishing debs') {
+            echo 'TODO: Implement me'
+            // sh ./sovrin-packaging/upload-build.sh $BUILD_NUMBER
+        }
+    }
+    finally {
+        stage('Publish: Cleanup') {
+            step([$class: 'WsCleanup'])
+        }
     }
 }
 
