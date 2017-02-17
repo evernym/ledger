@@ -6,7 +6,7 @@ node('ubuntu') {
     }
 
     stage('Ubuntu Test: Build docker image') {
-        sh 'ln -s ci/ledger-ubuntu.dockerfile Dockerfile'
+        sh 'ln -sf ci/ledger-ubuntu.dockerfile Dockerfile'
         def testEnv = docker.build 'ledger-test'
         
         testEnv.inside {
