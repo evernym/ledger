@@ -52,10 +52,10 @@ stage('Publish artifacts') {
             echo 'Publish to pipy...'
             sh 'chmod -R 777 ci'
             withCredentials([file(credentialsId: 'pypi_credentials', variable: 'FILE')]) {
-                sh 'ln -s $FILE $HOME/.pypirc' 
+                sh 'ln -sf $FILE $HOME/.pypirc' 
                 sh 'ci/prepare-pypi-package.sh . $BUILD_NUMBER'
                 sh 'ci/upload-pypi-package.sh .'
-                sh 'rm $HOME/.pypirc'
+                sh 'rm -f $HOME/.pypirc'
             }
             echo 'Publish pipy: done'
         }
