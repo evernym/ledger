@@ -13,21 +13,25 @@ node('ubuntu') {
         def testEnv = docker.build 'ledger-test'
         echo 'Build docker image: done'
         testEnv.inside {
-            echo 'Creating to virtual environment...'
-            sh 'virtualenv -p python3.5 test'
-            echo 'Creating to virtual environment: done'
+            stage('Ubuntu Test: Install dependencies') {
+                echo 'Creating to virtual environment...'
+                sh 'virtualenv -p python3.5 test'
+                echo 'Creating to virtual environment: done'
 
-            echo 'Install deps...'
-            sh 'test/bin/python setup.py install'
-            echo 'Install deps: done'
+                echo 'Install deps...'
+                sh 'test/bin/python setup.py install'
+                echo 'Install deps: done'
 
-            echo 'Install pytest...'
-            sh 'test/bin/pip install pytest'
-            echo 'Install pytest: done'
+                echo 'Install pytest...'
+                sh 'test/bin/pip install pytest'
+                echo 'Install pytest: done'
+            }
 
-            echo 'Testing...'
-            sh 'cd ledger && ../test/bin/python -m pytest --junitxml=./test-result'
-            echo 'Testing: done'
+            stage('Ubuntu Test: Test') {
+                echo 'Testing...'
+                sh 'cd ledger && ../test/bin/python -m pytest --junitxml=./test-result'
+                echo 'Testing: done'
+            }
         }
     }
 
