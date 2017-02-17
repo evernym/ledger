@@ -10,7 +10,7 @@ stage('Ubuntu testing') {
 
         stage('Install dependencies and test...') {
             echo 'Build docker image...'
-            sh 'cp ci/ledger-ubuntu.dockerfile Dockerfile'
+            sh 'cp ci/ledger-ubuntu.dockerfile Dock'
             def testEnv = docker.build 'ledger-test'
             echo 'Build docker image: done'
             testEnv.inside {
@@ -41,7 +41,7 @@ stage('Ubuntu testing') {
 }
 
 stage('Publish artifacts') {
-    node('deploy') {
+    node('ubuntu') {
         stage('Checkout csm') {
             echo 'Checkout csm...'
             checkout scm
@@ -50,9 +50,13 @@ stage('Publish artifacts') {
         
         stage('Publish pipy') {
             echo 'Publish to pipy...'
-            sh 'chmod -R 777 ci' 
-            sh 'ci/prepare-pypi-package.sh . $BUILD_NUMBER'
-            sh 'ci/upload-pypi-package.sh .'
+            sh 'chmod -R 777 ci'
+            withCredentials([file(credentialsId: 'pypi_credentials', variable: 'FILE')]) {
+                sh 'ln -s $FILE $HOME/.pypirc' 
+                sh 'ci/prepare-pypi-package.sh . $BUILD_NUMBER'
+                sh 'ci/upload-pypi-package.sh .'
+                sh 'rm $HOME/.pypirc'
+            }
             echo 'Publish pipy: done'
         }
 
