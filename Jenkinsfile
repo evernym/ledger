@@ -1,60 +1,94 @@
-echo 'Ledger build...'
+echo 'Ledger test...'
 
-stage('Ubuntu testing') {
-    node {
-        stage('Checkout csm') {
-            echo 'Checkout csm...'
-            checkout scm
-            echo 'Checkout csm: done'
-        }
+node('ubuntu') {
+    stage('Ubuntu Test: Checkout csm') {
+        echo 'Checkout csm...'
+        checkout scm
+        echo 'Checkout csm: done'
+    }
 
-        docker.image('python:3.5.3').inside {
-            stage('Install deps') {
+    stage('Ubuntu Test: Build docker image') {
+        echo 'Build docker image...'
+        sh 'ln -s ci/ledger-ubuntu.dockerfile Dockerfile'
+        def testEnv = docker.build 'ledger-test'
+        echo 'Build docker image: done'
+        testEnv.inside {
+            stage('Ubuntu Test: Install dependencies') {
+                echo 'Creating to virtual environment...'
+                sh 'virtualenv -p python3.5 test'
+                echo 'Creating to virtual environment: done'
+
                 echo 'Install deps...'
-                //sh 'python setup.py install' 
+                sh 'test/bin/python setup.py install'
                 echo 'Install deps: done'
-            }
-            
-            stage('Test') {
-                echo 'Testing...'
-                //sh 'python setup.py pytest' 
-                echo 'Testesting: done'
-            }
-        }
 
-        stage('Cleanup') {
-            echo 'Cleanup workspace...'
-            step([$class: 'WsCleanup'])
-            echo 'Cleanup workspace: done'
+                echo 'Install pytest...'
+                sh 'test/bin/pip install pytest'
+                echo 'Install pytest: done'
+            }
+
+            stage('Ubuntu Test: Test') {
+                echo 'Testing...'
+                sh 'cd ledger && ../test/bin/python -m pytest --junitxml=./test-result'
+                echo 'Testing: done'
+            }
         }
+    }
+
+    stage('Ubuntu Test: Cleanup') {
+        echo 'Cleanup workspace...'
+        step([$class: 'WsCleanup'])
+        echo 'Cleanup workspace: done'
     }
 }
 
-stage('Publish artifacts') {
-    node {
-        stage('Checkout csm') {
-            echo 'Checkout csm...'
-            checkout scm
-            echo 'Checkout csm: done'
-        }
-        
-        stage('Publish pipy') {
-            echo 'Publish to pipy...'
-            //sh './publish_pipy.sh' 
-            echo 'Publish pipy: done'
-        }
+echo 'Ledger test: done'
 
-        stage('Publish debs') {
-            echo 'Publish to pipy...'
-            //sh './publish_debs.sh' 
-            echo 'Publish to pipy: done'
-        }
+if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'dev') {
+    echo "Ledger ${env.BRANCH_NAME}: no publish"
+    return
+}
 
-        stage('Cleanup') {
-            echo 'Cleanup workspace...'
-            step([$class: 'WsCleanup'])
-            echo 'Cleanup workspace: done'
+echo 'Ledger build...'
+
+node('ubuntu') {
+    stage('Publish: Checkout csm') {
+        echo 'Checkout csm...'
+        checkout scm
+        echo 'Checkout csm: done'
+    }
+    
+    stage('Publish: Publish pipy') {
+        echo 'Publish to pipy...'
+        sh 'chmod -R 777 ci'
+        withCredentials([file(credentialsId: 'pypi_credentials', variable: 'FILE')]) {
+            sh 'ln -sf $FILE $HOME/.pypirc' 
+            sh 'ci/prepare-pypi-package.sh . $BUILD_NUMBER'
+            sh 'ci/upload-pypi-package.sh .'
+            sh 'rm -f $HOME/.pypirc'
         }
+        echo 'Publish pipy: done'
+    }
+
+    stage('Publish: Building debs') {
+        echo 'Building debs...'
+        withCredentials([usernameColonPassword(credentialsId: 'evernym-githib-user', variable: 'USERPASS')]) {
+            sh 'git clone https://$USERPASS@github.com/evernym/sovrin-packaging.git'
+        }
+        // sh ./sovrin-packaging/pack-ledger.sh $BUILD_NUMBER
+        echo 'Building debs: done'
+    }
+
+    stage('Publish: Publishing debs') {
+        echo 'Publish debs...'
+        // sh ./sovrin-packaging/upload-build.sh $BUILD_NUMBER
+        echo 'Publish debs: done'
+    }
+
+    stage('Publish: Cleanup') {
+        echo 'Cleanup workspace...'
+        step([$class: 'WsCleanup'])
+        echo 'Cleanup workspace: done'
     }
 }
 
