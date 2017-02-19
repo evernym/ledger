@@ -49,18 +49,21 @@ if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'stable') {
     return
 }
 
-echo 'Ledger build...'
-
+def qaApproval
 stage('QA approval') {
 	try {
-		input(message: 'Do you want to publish this package?')
+		qaApproval = input(message: 'Do you want to publish this package?')
 		echo 'QA approval granted'
 	}
 	catch (Exception err) {
 		echo 'QA approval denied'
-		return
 	}
 }
+if (!qaApproval) {
+	return
+}
+
+echo 'Ledger build...'
 
 node('ubuntu') {
     try {
