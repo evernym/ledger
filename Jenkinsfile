@@ -52,10 +52,12 @@ if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'stable') {
 def qaApproval
 stage('QA approval') {
 	try {
-		qaApproval = input(message: 'Do you want to publish this package?')
+		input(message: 'Do you want to publish this package?')
+		qaApproval = true
 		echo 'QA approval granted'
 	}
 	catch (Exception err) {
+		qaApproval = false
 		echo 'QA approval denied'
 	}
 }
