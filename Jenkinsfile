@@ -51,7 +51,7 @@ if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'stable') {
 
 echo 'Ledger build...'
 
-step('QA approval') {
+stage('QA approval') {
 	try {
 		input(message: 'Do you want to publish this package?')
 		echo 'QA approval granted'
