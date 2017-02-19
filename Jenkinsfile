@@ -44,23 +44,24 @@ parallel 'ubuntu-test':{
 
 echo 'Ledger test: done'
 
-if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'stable') {
-    echo "Ledger ${env.BRANCH_NAME}: skip publishing"
-    exit 0
-}
-
-echo 'Ledger build...'
-
+def qaApproval
 stage('QA approval') {
 	try {
-		input(message: 'Do you want to publish this package?')
+		qaApproval = input(message: 'Do you want to publish this package?')
 		echo 'QA approval granted'
 	}
 	catch (Exception err) {
 		echo 'QA approval denied'
-		exit 0
 	}
 }
+echo "${qaApproval}"
+
+if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'stable') {
+    echo "Ledger ${env.BRANCH_NAME}: skip publishing"
+    return
+}
+
+echo 'Ledger build...'
 
 node('ubuntu') {
     try {
