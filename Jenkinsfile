@@ -49,6 +49,11 @@ if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'stable') {
     return
 }
 
+stage('QA notification') {
+	echo 'TODO: Add email sending'
+	// emailext (template: 'qa-deploy-test')
+}
+
 def qaApproval
 stage('QA approval') {
 	try {
