@@ -46,7 +46,7 @@ echo 'Ledger test: done'
 
 if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'stable') {
     echo "Ledger ${env.BRANCH_NAME}: skip publishing"
-    return
+    exit 0
 }
 
 echo 'Ledger build...'
@@ -58,7 +58,7 @@ stage('QA approval') {
 	}
 	catch (Exception err) {
 		echo 'QA approval denied'
-		return
+		exit 0
 	}
 }
 
