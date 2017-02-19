@@ -56,7 +56,7 @@ step('QA approval') {
 		input(message: 'Do you want to publish this package?')
 		echo 'QA approval granted'
 	}
-	catch {
+	catch (Exception err) {
 		echo 'QA approval denied'
 		return
 	}
