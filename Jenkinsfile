@@ -28,11 +28,9 @@ try {
     }
 
     // 2. PUBLISH TO PYPI
-    def gitCommit
-    def version
     stage('Publish to pypi') {
         node('ubuntu') {
-            publishToPypi()
+            version = publishToPypi()
         }
     }
 
@@ -65,7 +63,7 @@ try {
 
     // 5. NOTIFY QA
     stage('QA notification') {
-        notifyQA('version', 'gitCommit')
+        notifyQA(version)
     }
 
     // 6. APPROVE QA
@@ -133,7 +131,7 @@ def publishToPypi() {
 
         echo 'Publish to pypi: Prepare package'
         sh 'chmod -R 777 ci'
-        gitCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+        //gitCommit = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
         version = sh(returnStdout: true, script: 'ci/get-package-version.sh ledger $BUILD_NUMBER').trim()
 
         sh 'ci/prepare-package.sh . $BUILD_NUMBER'
@@ -145,7 +143,7 @@ def publishToPypi() {
             sh 'rm -f $HOME/.pypirc'
         }
 
-        return Tuple2(version, gitCommit)
+        return version
     }
     finally {
         echo 'Publish to pypi: Cleanup'
@@ -188,10 +186,10 @@ def systemTests() {
     echo 'TODO: Implement me'
 }
 
-def notifyQA(version, gitCommit) {
+def notifyQA(version) {
     emailext (
         subject: "New release candidate '${JOB_NAME}' (${BUILD_NUMBER}) is waiting for input",
-        body: "Please go to ${BUILD_URL} and verify the build: $version $gitCommit",
+        body: "Please go to ${BUILD_URL} and verify the build: $version",
         to: 'alexander.sherbakov@dsr-company.com'
     )
 }
