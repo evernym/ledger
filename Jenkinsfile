@@ -188,8 +188,8 @@ def systemTests() {
 
 def notifyQA(version) {
     emailext (
-        subject: "New release candidate '${JOB_NAME}' (${BUILD_NUMBER}) is waiting for input",
-        body: "Please go to ${BUILD_URL} and verify the build: $version",
+        subject: "New release candidate '$PROJECT_NAME' $version is waiting for approval",
+        body: "Please go to ${BUILD_URL} and verify the build",
         to: 'alexander.sherbakov@dsr-company.com'
     )
 }
@@ -218,7 +218,7 @@ def notifyFail() {
             [$class: 'RequesterRecipientProvider']
         ],
         replyTo: '$DEFAULT_REPLYTO',
-        subject: '$DEFAULT_SUBJECT',
+        subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - FAILED!',
         to: '$DEFAULT_RECIPIENTS'
        )
 }
