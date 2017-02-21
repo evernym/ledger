@@ -119,8 +119,8 @@ if (env.BRANCH_NAME == 'stable' || env.BRANCH_NAME == 'master') {
 
     stage('QA notification') {
         emailext (
-            subject: "New release candidate for $PROJECT_NAME: [$BUILD_NUMBER]'",
-            body: "",
+            subject: "New release candidate '${JOB_NAME}' (${BUILD_NUMBER}) is waiting for input",
+            body: "Please go to ${BUILD_URL} and verify the build"
             to: 'alexander.sherbakov@dsr-company.com'
         )
     }
