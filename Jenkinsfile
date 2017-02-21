@@ -115,7 +115,7 @@ stage('System tests') {
     echo 'TODO: Implement me'
 }
 
-if (env.BRANCH_NAME == 'stable' || env.BRANCH_NAME == 'master') {
+if (env.BRANCH_NAME == 'stable') {
 
     stage('QA notification') {
         emailext (
