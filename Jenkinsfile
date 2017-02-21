@@ -176,8 +176,7 @@ def buildDeb() {
     }
     finally {
         echo 'Build deb packages: Cleanup'
-            step([$class: 'WsCleanup'])
-        }
+        step([$class: 'WsCleanup'])
     }
 }
 
@@ -192,7 +191,7 @@ def systemTests() {
 def notifyQA(gitCommit, version) {
     emailext (
         subject: "New release candidate '${JOB_NAME}' (${BUILD_NUMBER}) is waiting for input",
-        body: "Please go to ${BUILD_URL} and verify the build. Version - " + version,
+        body: "Please go to ${BUILD_URL} and verify the build. version - $version, hashCommit - $gitCommit",
         to: 'alexander.sherbakov@dsr-company.com'
     )
 }
@@ -213,7 +212,8 @@ def approveQA() {
 
 
 def notifyFail() {
-    emailext body: '$DEFAULT_CONTENT',
+    emailext (
+        body: '$DEFAULT_CONTENT',
         recipientProviders: [
             [$class: 'CulpritsRecipientProvider'],
             [$class: 'DevelopersRecipientProvider'],
@@ -222,4 +222,5 @@ def notifyFail() {
         replyTo: '$DEFAULT_REPLYTO',
         subject: '$DEFAULT_SUBJECT',
         to: '$DEFAULT_RECIPIENTS'
+       )
 }
