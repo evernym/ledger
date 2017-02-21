@@ -131,7 +131,9 @@ def testWindows() {
 
 
         echo 'Windows Test: Build docker image'
-        bat 'copy \Y "ci\\ledger-windows.dockerfile" "Dockerfile"'
+        bat 'copy /Y "ci\\ledger-windows.dockerfile" "Dockerfile"'
+        bat 'aaa=1'
+        bat 'echo $aaa'
         bat 'docker build -t "ledger-windows-test" .'
         bat 'container_id=$(docker run -id -v `cygpath -w \`pwd\``:C:\\test "ledger-windows-test")'
         echo '$container_id'
