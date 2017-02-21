@@ -32,7 +32,7 @@ try {
     def version
     stage('Publish to pypi') {
         node('ubuntu') {
-            publishToPypi()
+            (version, gitCommit) = publishToPypi()
         }
     }
 
@@ -65,7 +65,7 @@ try {
 
     // 5. NOTIFY QA
     stage('QA notification') {
-        notifyQA()
+        notifyQA(version, gitCommit)
     }
 
     // 6. APPROVE QA
@@ -145,7 +145,7 @@ def publishToPypi() {
             sh 'rm -f $HOME/.pypirc'
         }
 
-        return [version, gitCommit]
+        return Tuple2(version, gitCommit)
     }
     finally {
         echo 'Publish to pypi: Cleanup'
@@ -188,10 +188,10 @@ def systemTests() {
     echo 'TODO: Implement me'
 }
 
-def notifyQA() {
+def notifyQA(version, gitCommit) {
     emailext (
         subject: "New release candidate '${JOB_NAME}' (${BUILD_NUMBER}) is waiting for input",
-        body: "Please go to ${BUILD_URL} and verify the build.",
+        body: "Please go to ${BUILD_URL} and verify the build: $version $gitCommit",
         to: 'alexander.sherbakov@dsr-company.com'
     )
 }
