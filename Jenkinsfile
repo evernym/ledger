@@ -133,14 +133,15 @@ def testWindows() {
         echo 'Windows Test: Build docker image'
         bat 'copy \Y "ci\\ledger-windows.dockerfile" "Dockerfile"'
         bat 'docker build -t "ledger-windows-test" .'
-        bat 'docker run -d "ledger-windows-test"'
+        bat 'container_id=$(docker run -id -v `cygpath -w \`pwd\``:C:\\test "ledger-windows-test")'
+        echo '$container_id'
+        bat 'docker exec -i $container_id cmd /c dir'
         /*
-            mount current directory in docker
-            run in docker:
             python setup.py install
             pip install pytest
             python -m pytest --junitxml=test-result.xml
         */
+        bat 'docker stop $container_id'
         junit 'test-result.xml'
     }
     finally {
