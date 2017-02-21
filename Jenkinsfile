@@ -57,9 +57,9 @@ try {
 
 // MASTER ONLY
 
-    //if (env.BRANCH_NAME != 'stable') {
-        //return
-    //}
+    if (env.BRANCH_NAME != 'stable') {
+        return
+    }
 
     // 5. NOTIFY QA
     stage('QA notification') {
@@ -86,7 +86,9 @@ try {
     }
 
 } catch(e) {
-    notifyFail()
+    currentBuild.result = "FAILED"
+    notifyFailed()
+    throw e
 }
 
 def testUbuntu() {
@@ -188,7 +190,7 @@ def systemTests() {
 
 def notifyQA(version) {
     emailext (
-        subject: "New release candidate '$PROJECT_NAME' $version is waiting for approval",
+        subject: "New release candidate 'ledger-$version' is waiting for approval",
         body: "Please go to ${BUILD_URL} and verify the build",
         to: 'alexander.sherbakov@dsr-company.com'
     )
@@ -218,7 +220,7 @@ def notifyFail() {
             [$class: 'RequesterRecipientProvider']
         ],
         replyTo: '$DEFAULT_REPLYTO',
-        subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - FAILED!',
+        subject: '$DEFAULT_SUBJECT',
         to: '$DEFAULT_RECIPIENTS'
        )
 }
