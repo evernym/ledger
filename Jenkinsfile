@@ -115,39 +115,39 @@ stage('System tests') {
     echo 'TODO: Implement me'
 }
 
-if (env.BRANCH_NAME == 'stable') {
+if (env.BRANCH_NAME != 'stable') {
+    return
+}
 
-    stage('QA notification') {
-        emailext (
-            subject: "New release candidate '${JOB_NAME}' (${BUILD_NUMBER}) is waiting for input",
-            body: "Please go to ${BUILD_URL} and verify the build",
-            to: 'alexander.sherbakov@dsr-company.com'
-        )
-    }
+stage('QA notification') {
+    emailext (
+        subject: "New release candidate '${JOB_NAME}' (${BUILD_NUMBER}) is waiting for input",
+        body: "Please go to ${BUILD_URL} and verify the build",
+        to: 'alexander.sherbakov@dsr-company.com'
+    )
+}
 
-    def qaApproval
-    stage('QA approval') {
-        try {
-            input(message: 'Do you want to publish this package?')
-            qaApproval = true
-            echo 'QA approval granted'
-        }
-        catch (Exception err) {
-            qaApproval = false
-            echo 'QA approval denied'
-        }
+def qaApproval
+stage('QA approval') {
+    try {
+        input(message: 'Do you want to publish this package?')
+        qaApproval = true
+        echo 'QA approval granted'
     }
-    if (!qaApproval) {
-        return
+    catch (Exception err) {
+        qaApproval = false
+        echo 'QA approval denied'
     }
+}
+if (!qaApproval) {
+    return
+}
 
-    stage('Release packages') {
-        echo 'TODO: Implement me'
-    }
+stage('Release packages') {
+    echo 'TODO: Implement me'
+}
 
-    stage('System tests') {
-        echo 'TODO: Implement me'
-    }
-
+stage('System tests') {
+    echo 'TODO: Implement me'
 }
 
