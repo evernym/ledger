@@ -13,3 +13,6 @@ RUN pip3 install -U \
 	pip \ 
 	setuptools \
 	virtualenv
+RUN useradd -ms /bin/bash sovrin
+USER sovrin
+WORKDIR /home/sovrin
