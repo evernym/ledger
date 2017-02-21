@@ -32,7 +32,7 @@ try {
     def version
     stage('Publish to pypi') {
         node('ubuntu') {
-            (version, gitCommit) = publishToPypi()
+            publishToPypi()
         }
     }
 
@@ -59,13 +59,13 @@ try {
 
 // MASTER ONLY
 
-    if (env.BRANCH_NAME != 'stable') {
-        return
-    }
+    //if (env.BRANCH_NAME != 'stable') {
+        //return
+    //}
 
     // 5. NOTIFY QA
     stage('QA notification') {
-        notifyQA(version, gitCommit)
+        notifyQA('version', 'gitCommit')
     }
 
     // 6. APPROVE QA
