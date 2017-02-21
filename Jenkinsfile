@@ -32,7 +32,7 @@ try {
     def version
     stage('Publish to pypi') {
         node('ubuntu') {
-            (version, gitCommit) = publishToPypi()
+            publishToPypi()
         }
     }
 
@@ -65,7 +65,7 @@ try {
 
     // 5. NOTIFY QA
     stage('QA notification') {
-        notifyQA(gitCommit, version)
+        notifyQA()
     }
 
     // 6. APPROVE QA
@@ -188,10 +188,10 @@ def systemTests() {
     echo 'TODO: Implement me'
 }
 
-def notifyQA(gitCommit, version) {
+def notifyQA() {
     emailext (
         subject: "New release candidate '${JOB_NAME}' (${BUILD_NUMBER}) is waiting for input",
-        body: "Please go to ${BUILD_URL} and verify the build. version - $version, hashCommit - $gitCommit",
+        body: "Please go to ${BUILD_URL} and verify the build.",
         to: 'alexander.sherbakov@dsr-company.com'
     )
 }
