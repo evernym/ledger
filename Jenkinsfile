@@ -211,7 +211,7 @@ def approveQA() {
 }
 
 
-def notifyFail() {
+def notifyFailed() {
     emailext (
         body: '$DEFAULT_CONTENT',
         recipientProviders: [
