@@ -14,8 +14,10 @@ try {
             }
         },
         'windows-test':{
-            stage('Windows Test') {
-                testWindows()
+            node('windows') {
+                stage('Windows Test') {
+                    testWindows()
+                }
             }
         }
     }
@@ -123,7 +125,33 @@ def testUbuntu() {
 }
 
 def testWindows() {
-    echo 'TODO: Implement me'
+    try {
+        echo 'Windows Test: Checkout csm'
+        checkout scm
+
+
+        echo 'Windows Test: Build docker image'
+        bat 'mklink ci/ledger-windows.dockerfile Dockerfile'
+        def testEnv = docker.build 'ledger-windows-test'
+
+        testEnv.inside {
+            echo 'Windows Test: Install dependencies'
+            bat 'python setup.py install'
+            bat 'pip install pytest'
+
+            echo 'Windows Test: Test'
+            try {
+                bat 'python -m pytest --junitxml=test-result.xml'
+            }
+            finally {
+                junit 'test-result.xml'
+            }
+        }
+    }
+    finally {
+        echo 'Ubuntu Test: Cleanup'
+        step([$class: 'WsCleanup'])
+    }
 }
 
 def publishToPypi() {
