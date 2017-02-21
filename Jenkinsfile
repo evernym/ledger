@@ -131,22 +131,17 @@ def testWindows() {
 
 
         echo 'Windows Test: Build docker image'
-        bat 'copy /Y "ci\\ledger-windows.dockerfile" "Dockerfile"'
-        def testEnv = docker.build 'ledger-windows-test'
-
-        testEnv.inside {
-            echo 'Windows Test: Install dependencies'
-            bat 'python setup.py install'
-            bat 'pip install pytest'
-
-            echo 'Windows Test: Test'
-            try {
-                bat 'python -m pytest --junitxml=test-result.xml'
-            }
-            finally {
-                junit 'test-result.xml'
-            }
-        }
+        bat 'copy \Y "ci\\ledger-windows.dockerfile" "Dockerfile"'
+        bat 'docker build -t "ledger-windows-test" .'
+        bat 'docker run -d "ledger-windows-test"'
+        /*
+            mount current directory in docker
+            run in docker:
+            python setup.py install
+            pip install pytest
+            python -m pytest --junitxml=test-result.xml
+        */
+        junit 'test-result.xml'
     }
     finally {
         echo 'Ubuntu Test: Cleanup'
