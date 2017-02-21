@@ -131,8 +131,7 @@ def testWindows() {
 
 
         echo 'Windows Test: Build docker image'
-        bat 'if exist "Dockerfile" del "Dockerfile"'
-        bat 'mklink "ci\\ledger-windows.dockerfile" "Dockerfile"'
+        bat 'copy /Y "ci\\ledger-windows.dockerfile" "Dockerfile"'
         def testEnv = docker.build 'ledger-windows-test'
 
         testEnv.inside {
