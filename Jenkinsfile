@@ -133,7 +133,7 @@ def testWindows() {
         echo 'Windows Test: Build docker image'
         bat 'copy /Y "ci\\ledger-windows.dockerfile" "Dockerfile"'
         bat 'docker build -t "ledger-windows-test" .'
-        bat 'docker run -id --name test-container -v `cygpath -w $PWD`:C:\\test "ledger-windows-test")'
+        bat 'docker run -id --name test-container -v `cygpath -w $PWD`:C:\\test "ledger-windows-test"'
         bat 'docker exec -i test-container cmd /c dir'
         /*
             python setup.py install
