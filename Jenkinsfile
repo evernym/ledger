@@ -14,14 +14,14 @@ stage('Test') {
 
                     testEnv.inside {
                         stage('Ubuntu Test: Install dependencies') {
-                            sh 'virtualenv -p python3.5 test'
-                            sh 'test/bin/python setup.py install'
-                            sh 'test/bin/pip install pytest'
+                            sh 'cd /home/sovrin && virtualenv -p python3.5 test'
+                            sh '/home/sovrin/test/bin/python setup.py install'
+                            sh '/home/sovrin/test/bin/pip install pytest'
                         }
 
                         stage('Ubuntu Test: Test') {
                             try {
-                                sh 'cd ledger && ../test/bin/python -m pytest --junitxml=../test-result.xml'
+                                sh '/home/sovrin/test/bin/python -m pytest --junitxml=test-result.xml'
                             }
                             finally {
                                 junit 'test-result.xml'
