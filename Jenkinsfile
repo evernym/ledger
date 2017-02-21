@@ -131,7 +131,7 @@ def testWindows() {
 
 
         echo 'Windows Test: Build docker image'
-        bat 'mklink "ci\ledger-windows.dockerfile" "Dockerfile"'
+        bat 'mklink "ci\\ledger-windows.dockerfile" "Dockerfile"'
         def testEnv = docker.build 'ledger-windows-test'
 
         testEnv.inside {
