@@ -133,6 +133,7 @@ def testWindows() {
         echo 'Windows Test: Build docker image'
         sh 'cp "ci/ledger-windows.dockerfile" Dockerfile'
         sh 'docker build -t "ledger-windows-test" .'
+        sh 'docker rm --force test-container'
         sh 'docker run -id --name test-container -v "$(cygpath -w $PWD):C:\\test" "ledger-windows-test"'
         sh 'docker exec -i test-container cmd /c dir'
         /*
