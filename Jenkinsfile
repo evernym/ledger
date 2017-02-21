@@ -133,7 +133,7 @@ def testWindows() {
         echo 'Windows Test: Build docker image'
         sh 'cp "ci/ledger-windows.dockerfile" Dockerfile'
         sh 'docker build -t "ledger-windows-test" .'
-        sh 'if [ -n "$(docker ps -a | grep borng_euclid)" ]; then docker rm --force test-container; fi'
+        sh 'bash -c "if [ -n \"$(docker ps -a | grep borng_euclid)\" ]; then docker rm --force test-container; fi"'
         sh 'docker run -id --name test-container -v "$(cygpath -w $PWD):C:\\test" "ledger-windows-test"'
         sh 'docker exec -i test-container cmd /c cd "C:\\test" & dir'
         sh 'docker exec -i test-container cmd /c cd "C:\\test" & python setup.py install'
