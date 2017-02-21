@@ -135,12 +135,11 @@ def testWindows() {
         sh 'docker build -t "ledger-windows-test" .'
         sh 'docker rm --force test-container'
         sh 'docker run -id --name test-container -v "$(cygpath -w $PWD):C:\\test" "ledger-windows-test"'
+        sh 'docker exec -i test-container cmd /c cd "C:\\test"'
         sh 'docker exec -i test-container cmd /c dir'
-        /*
-            python setup.py install
-            pip install pytest
-            python -m pytest --junitxml=test-result.xml
-        */
+        sh 'docker exec -i test-container cmd /c python setup.py install'
+        sh 'docker exec -i test-container cmd /c pip install pytest'
+        sh 'docker exec -i test-container cmd /c python -m pytest --junitxml=test-result.xml'
         sh 'docker stop test-container'
         sh 'docker rm test-container'
         junit 'test-result.xml'
