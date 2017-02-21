@@ -25,5 +25,8 @@ def testMeasureWriteTime(tempdir):
           "seconds".format(len(hashes), timeTakenWithoutSync))
     print("So the difference is {} seconds".
           format(timeTakenWithSync-timeTakenWithoutSync))
-    assert timeTakenWithoutSync*100 < timeTakenWithSync, "ratio is {}".\
+    # On most platforms the ratio between write time with fsync and
+    # write time without fsync typically must be greater than 100.
+    # But on Windows Server 2012 this ratio may be less - down to 30.
+    assert timeTakenWithoutSync*10 < timeTakenWithSync, "ratio is {}".\
         format(timeTakenWithSync/timeTakenWithoutSync)
