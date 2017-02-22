@@ -17,6 +17,13 @@ try {
             stage('Windows Test') {
                 testWindows()
             }
+        },
+        'windows-no-docker-test':{
+            node('windows') {
+                stage('Windows No Docker Test') {
+                    testWindowsNoDocker()
+                }
+            }
         }
     }
 
@@ -124,6 +131,33 @@ def testUbuntu() {
 
 def testWindows() {
     echo 'TODO: Implement me'
+}
+
+def testWindowsNoDocker() {
+    def virtualEnvDir = "$USERPROFILE\\$BRANCH_NAME$BUILD_NUMBER"
+    try {
+        echo 'Windows No Docker Test: Checkout csm'
+        checkout scm
+
+        echo 'Windows No Docker Test: Install dependencies'
+        bat "if exist $virtualEnvDir rmdir /q /s $virtualEnvDir"
+        bat "virtualenv $virtualEnvDir"
+        bat "$virtualEnvDir\\Scripts\\python setup.py install"
+        bat "$virtualEnvDir\\Scripts\\pip install pytest"
+        
+        echo 'Windows No Docker Test: Test'
+        try {
+            bat "$virtualEnvDir\\Scripts\\python -m pytest --junitxml=test-result.xml"
+        }
+        finally {
+            junit 'test-result.xml'
+        }
+    }
+    finally {
+        echo 'Windows No Docker Test: Cleanup'
+        bat "if exist $virtualEnvDir rmdir /q /s $virtualEnvDir"
+        step([$class: 'WsCleanup'])
+    }
 }
 
 def publishToPypi() {
