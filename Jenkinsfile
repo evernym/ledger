@@ -14,14 +14,14 @@ try {
             }
         },
         'windows-test':{
-            node('windows') {
+            node('windows2016') {
                 stage('Windows Test') {
                     testWindows()
                 }
             }
         },
         'windows-no-docker-test':{
-            node('windows') {
+            node('windows2012') {
                 stage('Windows No Docker Test') {
                     testWindowsNoDocker()
                 }
