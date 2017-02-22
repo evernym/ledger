@@ -129,6 +129,7 @@ try {
     throw e
 } finally {
     if (success) {
+        currentBuild.result = "SUCCESS"
         notifySuccess()
     }
 }
