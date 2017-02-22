@@ -185,7 +185,7 @@ def testStartLedgerWithoutNewLineAppendedToLastRecord(ledger):
     size1 = ledger._transactionLog.numKeys
     assert size1 == 3
     ledger.stop()
-    newLineCounts = open(ledger._transactionLog.dbPath, 'r').read().count(os.linesep) + 1
+    newLineCounts = open(ledger._transactionLog.dbPath, 'rb').read().count(lineSep) + 1
     assert newLineCounts == 3
 
     # now start ledger, and it should add the missing new line char at the end of the file, so
