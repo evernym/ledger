@@ -136,22 +136,16 @@ def testWindows() {
         sh 'bash -c "if [ -n \"$(docker ps -a | grep borng_euclid)\" ]; then docker rm --force test-container2; fi"'
         sh 'chmod -R a+w $PWD'
         sh 'docker run -id --name test-container2 -v "$(cygpath -w $PWD):C:\\test" "ledger-windows-test"'
-        //sh 'docker exec -i test-container2 cmd /c "dir C:\\test"'
-        //sh 'docker exec -i test-container2 cmd /c "cd \"C:\\test\" && dir"'
-        //sh 'docker exec -i test-container2 cmd /c "cd \"C:\\test\" && python setup.py install"'
-        //sh 'docker exec -i test-container2 cmd /c "dir C:\\test"'
-        //sh 'docker exec -i test-container2 cmd /c "cd C:\\test && dir && pytest -v --collect-only"'
-        //sh 'docker exec -i test-container2 cmd /c "cd C:\\test && dir && pytest --junitxml=test-result.xml"'
         sh 'docker exec -i test-container2 cmd /c "robocopy C:\\test C:\\test2 /COPYALL /E || dir"' // robocopy will return 1, and this is OK, that's why || dir
         sh 'docker exec -i test-container2 cmd /c "cd C:\\test2 && python setup.py install"'
         sh 'docker exec -i test-container2 cmd /c "cd C:\\test2 && pytest --junit-xml=C:\\test\\test-result.xml"'
-        //sh 'docker stop test-container2'
-        //sh 'docker rm test-container2'
+        sh 'docker stop test-container2'
+        sh 'docker rm test-container2'
         junit 'test-result.xml'
     }
     finally {
         echo 'Ubuntu Test: Cleanup'
-        //step([$class: 'WsCleanup'])
+        step([$class: 'WsCleanup'])
     }
 }
 
