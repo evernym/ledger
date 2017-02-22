@@ -140,10 +140,10 @@ def testWindows() {
         sh 'docker exec -i test-container cmd /c "cd \"C:\\test\" && dir"'
         sh 'docker exec -i test-container cmd /c "cd \"C:\\test\" && python setup.py install"'
         sh 'docker exec -i test-container cmd /c "dir C:\\test"'
-        sh 'docker exec -i test-container cmd /c "cd C:\\test && dir && pytest -v --collect-only"'
+        //sh 'docker exec -i test-container cmd /c "cd C:\\test && dir && pytest -v --collect-only"'
         //sh 'docker exec -i test-container cmd /c "cd C:\\test && dir && pytest --junitxml=test-result.xml"'
-        sh 'docker stop test-container'
-        sh 'docker rm test-container'
+        //sh 'docker stop test-container'
+        //sh 'docker rm test-container'
         junit 'test-result.xml'
     }
     finally {
@@ -175,7 +175,7 @@ def publishToPypi() {
     }
     finally {
         echo 'Publish to pypi: Cleanup'
-        step([$class: 'WsCleanup'])
+        //step([$class: 'WsCleanup'])
     }
 }
 
