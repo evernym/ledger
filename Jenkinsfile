@@ -136,17 +136,20 @@ def testWindows() {
         sh 'bash -c "if [ -n \"$(docker ps -a | grep borng_euclid)\" ]; then docker rm --force test-container; fi"'
         sh 'chmod -R a+w $PWD'
         sh 'docker run -id --name test-container -v "$(cygpath -w $PWD):C:\\test" "ledger-windows-test"'
+        sh 'docker exec -i test-container cmd /c "dir C:\\test"'
         sh 'docker exec -i test-container cmd /c "cd \"C:\\test\" && dir"'
         sh 'docker exec -i test-container cmd /c "cd \"C:\\test\" && python setup.py install"'
+        sh 'docker exec -i test-container cmd /c "dir C:\\test"'
         sh 'docker exec -i test-container cmd /c "pip install pytest"'
-        sh 'docker exec -i test-container cmd /c "cd C:\\test && pytest --junitxml=test-result.xml"'
+        sh 'docker exec -i test-container cmd /c "dir C:\\test"'
+        sh 'docker exec -i test-container cmd /c "cd C:\\test && dir C:\\test && pytest --junitxml=test-result.xml"'
         sh 'docker stop test-container'
         sh 'docker rm test-container'
         junit 'test-result.xml'
     }
     finally {
         echo 'Ubuntu Test: Cleanup'
-        //step([$class: 'WsCleanup'])
+        step([$class: 'WsCleanup'])
     }
 }
 
