@@ -168,7 +168,9 @@ def buildDeb() {
         }
 
         echo 'Build deb packages: Build debs'
-        sh './sovrin-packaging/pack-debs $BUILD_NUMBER ledger .'
+        def sourcePath = pwd()
+        sh 'cd sovrin-packaging'
+        sh './sovrin-packaging/pack-debs $BUILD_NUMBER ledger $sourcePath'
 
         echo 'Build deb packages: Publish debs'
         def repo = env.BRANCH_NAME == 'stable' ? 'rc' : 'master'
