@@ -124,9 +124,9 @@ def testRecoverLedgerFromHashStore(tempdir):
 
 
 def testConsistencyVerificationOnStartupCase1(tempdir):
-    '''
+    """
     One more node was added to nodes file
-    '''
+    """
     fhs = FileHashStore(tempdir)
     tree = CompactMerkleTree(hashStore=fhs)
     ledger = Ledger(tree=tree, dataDir=tempdir)
@@ -147,9 +147,9 @@ def testConsistencyVerificationOnStartupCase1(tempdir):
 
 
 def testConsistencyVerificationOnStartupCase2(tempdir):
-    '''
+    """
     One more transaction added to transactions file
-    '''
+    """
     fhs = FileHashStore(tempdir)
     tree = CompactMerkleTree(hashStore=fhs)
     ledger = Ledger(tree=tree, dataDir=tempdir)
