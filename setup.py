@@ -35,7 +35,7 @@ exec(compile(open(METADATA).read(), METADATA, 'exec'))
 
 
 setup(
-    name='ledger',
+    name='ledger-dev',
     version=__version__,
     description='Immutable Ledger python library',
     url='https://github.com/evernym/ledger',
