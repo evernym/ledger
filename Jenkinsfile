@@ -138,7 +138,7 @@ def testWindows() {
         sh 'docker run -id --name ledger_test_container -v "$(cygpath -w $PWD):C:\\test" "ledger-windows-test"'
         // XXX robocopy will return 1, and this is OK and means success (One of more files were copied successfully),
         // that's why " || true"
-        sh 'docker exec -i ledger_test_container cmd /c "robocopy C:\\test C:\\test2 /COPYALL /E || true"'
+        sh 'docker exec -i ledger_test_container cmd /c "robocopy C:\\test C:\\test2 /COPYALL /E" || true'
         sh 'docker exec -i ledger_test_container cmd /c "cd C:\\test2 && python setup.py install"'
         sh 'docker exec -i ledger_test_container cmd /c "cd C:\\test2 && pytest --junit-xml=C:\\test\\test-result.xml"'
         sh 'docker stop ledger_test_container'
