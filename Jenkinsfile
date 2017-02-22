@@ -167,7 +167,7 @@ def buildDeb() {
             git branch: 'jenkins-poc', credentialsId: 'evernym-githib-user', url: 'https://github.com/evernym/sovrin-packaging'
             SOURCE_PATH = sh(returnStdout: true, script: 'readlink -f ..').trim()
             echo 'sourcePath: ${SOURCE_PATH}'
-            println sourcePath
+            println SOURCE_PATH
             sh './pack-debs $BUILD_NUMBER ledger ${SOURCE_PATH}'
             def repo = env.BRANCH_NAME == 'stable' ? 'rc' : 'master'
             sh './upload-build $BUILD_NUMBER ledger $repo'
