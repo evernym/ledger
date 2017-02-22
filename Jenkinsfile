@@ -163,17 +163,16 @@ def buildDeb() {
         sh 'ci/prepare-package.sh . $BUILD_NUMBER'
 
         echo 'Build deb packages: get packaging code'
-        git branch: 'jenkins-poc', credentialsId: 'evernym-githib-user', url: 'https://github.com/evernym/sovrin-packaging'
-        sh 'ls'
-        sh 'cd ..'
-        sh 'ls'
+        dir('sovrin-packaging') {
+            git branch: 'jenkins-poc', credentialsId: 'evernym-githib-user', url: 'https://github.com/evernym/sovrin-packaging'
+        }
 
         echo 'Build deb packages: Build debs'
-        sh './sovrin-packaging/pack-debs.sh $BUILD_NUMBER ledger .'
+        sh './sovrin-packaging/pack-debs $BUILD_NUMBER ledger .'
 
         echo 'Build deb packages: Publish debs'
         def repo = env.BRANCH_NAME == 'stable' ? 'rc' : 'master'
-        sh './sovrin-packaging/upload-build.sh $BUILD_NUMBER ledger $repo'
+        sh './sovrin-packaging/upload-build $BUILD_NUMBER ledger $repo'
     }
     finally {
         echo 'Build deb packages: Cleanup'
