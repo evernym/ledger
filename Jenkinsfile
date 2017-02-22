@@ -1,5 +1,6 @@
 #!groovy​
 
+def success = true
 try {
 
 // ALL BRANCHES: master, stable, PRs
@@ -121,11 +122,15 @@ try {
         }
     }
 
-    notifySuccess()
 } catch(e) {
+    success = false
     currentBuild.result = "FAILED"
     notifyFailed()
     throw e
+} finally {
+    if (success) {
+        notifySuccess()
+    }
 }
 
 def testUbuntu() {
