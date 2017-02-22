@@ -169,7 +169,7 @@ def buildDeb() {
             println sourcePath
             sh "./pack-debs $BUILD_NUMBER ledger $sourcePath"
             def repo = env.BRANCH_NAME == 'stable' ? 'rc' : 'master'
-            sh "./upload-build $BUILD_NUMBER ledger $repo"
+            sh "./upload-debs $BUILD_NUMBER ledger $repo"
         }
 
         //echo 'Build deb packages: Build debs'
