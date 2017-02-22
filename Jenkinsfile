@@ -147,7 +147,7 @@ def testWindows() {
         junit 'test-result.xml'
     }
     finally {
-        echo 'Ubuntu Test: Cleanup'
+        //echo 'Ubuntu Test: Cleanup'
         step([$class: 'WsCleanup'])
     }
 }
