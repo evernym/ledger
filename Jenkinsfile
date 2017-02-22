@@ -142,9 +142,12 @@ def testWindows() {
         //sh 'docker exec -i test-container2 cmd /c "dir C:\\test"'
         //sh 'docker exec -i test-container2 cmd /c "cd C:\\test && dir && pytest -v --collect-only"'
         //sh 'docker exec -i test-container2 cmd /c "cd C:\\test && dir && pytest --junitxml=test-result.xml"'
+        sh 'docker exec -i test-container2 cmd /c "robocopy C:\\test C:\\test2 /COPYALL /E"'
+        sh 'docker exec -i test-container2 cmd /c "cd C:\\test2 && python setup.py install"'
+        sh 'docker exec -i test-container2 cmd /c "cd C:\\test2 && pytest --junitxml=\"C:\\test\\test-result.xml\""'
         //sh 'docker stop test-container2'
         //sh 'docker rm test-container2'
-        //junit 'test-result.xml'
+        junit 'test-result.xml'
     }
     finally {
         echo 'Ubuntu Test: Cleanup'
