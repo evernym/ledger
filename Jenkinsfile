@@ -165,12 +165,11 @@ def buildDeb() {
         //echo 'Build deb packages: get packaging code'
         dir('sovrin-packaging') {
             git branch: 'jenkins-poc', credentialsId: 'evernym-githib-user', url: 'https://github.com/evernym/sovrin-packaging'
-            SOURCE_PATH = sh(returnStdout: true, script: 'readlink -f ..').trim()
-            echo 'sourcePath: ${SOURCE_PATH}'
-            println SOURCE_PATH
-            sh './pack-debs $BUILD_NUMBER ledger ${SOURCE_PATH}'
+            def sourcePath = sh(returnStdout: true, script: 'readlink -f ..').trim()
+            println sourcePath
+            sh "./pack-debs $BUILD_NUMBER ledger $sourcePath"
             def repo = env.BRANCH_NAME == 'stable' ? 'rc' : 'master'
-            sh './upload-build $BUILD_NUMBER ledger $repo'
+            sh "./upload-build $BUILD_NUMBER ledger $repo"
         }
 
         //echo 'Build deb packages: Build debs'
