@@ -20,3 +20,8 @@ RUN powershell.exe -Command \
 RUN powershell.exe -Command \
     $ErrorActionPreference = 'Stop'; \
     choco install git  -ArgumentList '-params /GitAndUnixTllsOnPath' -y -Wait
+
+#   PIP deps
+RUN powershell.exe -Command \
+    $ErrorActionPreference = 'Stop'; \
+    pip install -U pip pytest
