@@ -9,7 +9,7 @@ try {
         parallel 'ubuntu-test':{
             node('ubuntu') {
                 stage('Ubuntu Test') {
-                    testUbuntu()
+                    //testUbuntu()
                 }
             }
         },
@@ -24,13 +24,13 @@ try {
 
     if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'stable') {
         echo "Ledger ${env.BRANCH_NAME}: skip publishing"
-        return
+        //return
     }
 
     // 2. PUBLISH TO PYPI
     stage('Publish to pypi') {
         node('ubuntu') {
-            version = publishToPypi()
+            //version = publishToPypi()
         }
     }
 
@@ -163,17 +163,19 @@ def buildDeb() {
         sh 'ci/prepare-package.sh . $BUILD_NUMBER'
 
         echo 'Build deb packages: get packaging code'
-        git branch: 'jenkins-poc', credentialsId: 'evernym-githib-user', url: 'https://github.com/evernym/sovrin-packaging'
+        dir('sovrin-packaging') {
+            git branch: 'jenkins-poc', credentialsId: 'evernym-githib-user', url: 'https://github.com/evernym/sovrin-packaging'
+        }
 
         echo 'Build deb packages: Build debs'
-        def sourcePath = sh(returnStdout: true, script: 'readlink -f .').trim()
-        echo 'sourcePath: $sourcePath'
+        //def sourcePath = sh(returnStdout: true, script: 'readlink -f .').trim()
+        //echo 'sourcePath: $sourcePath'
         sh 'cd sovrin-packaging'
-        sh 'pack-debs $BUILD_NUMBER ledger $sourcePath'
+        sh './sovrin-packaging/pack-debs $BUILD_NUMBER ledger ..'
 
         echo 'Build deb packages: Publish debs'
         def repo = env.BRANCH_NAME == 'stable' ? 'rc' : 'master'
-        sh 'upload-build $BUILD_NUMBER ledger $repo'
+        sh './sovrin-packaging/upload-build $BUILD_NUMBER ledger $repo'
     }
     finally {
         echo 'Build deb packages: Cleanup'
