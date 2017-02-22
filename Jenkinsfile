@@ -133,7 +133,7 @@ def testWindows() {
         echo 'Windows Test: Build docker image'
         sh 'cp "ci/ledger-windows.dockerfile" Dockerfile'
         sh 'docker build -t "ledger-windows-test" .'
-        sh 'bash -c "if [ -n \"$(docker ps -a | grep ledger_test_container)\" ]; then docker rm --force ledger_test_container; fi"'
+        sh 'docker rm --force ledger_test_container || true'
         sh 'chmod -R a+w $PWD'
         sh 'docker run -id --name ledger_test_container -v "$(cygpath -w $PWD):C:\\test" "ledger-windows-test"'
         // XXX robocopy will return 1, and this is OK and means success (One of more files were copied successfully),
