@@ -166,7 +166,7 @@ def buildDeb() {
         git branch: 'jenkins-poc', credentialsId: 'evernym-githib-user', url: 'https://github.com/evernym/sovrin-packaging'
 
         echo 'Build deb packages: Build debs'
-        def sourcePath = new File(".").getAbsolutePath()
+        def sourcePath = sh(returnStdout: true, script: 'readlink -f .').trim()
         echo 'sourcePath: $sourcePath'
         sh 'cd sovrin-packaging'
         sh 'pack-debs $BUILD_NUMBER ledger $sourcePath'
