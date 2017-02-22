@@ -172,7 +172,10 @@ def testConsistencyVerificationOnStartupCase2(tempdir):
     ledger.stop()
 
 
+<<<<<<< dae149f453f4134948271ebea953e46c2c493678
 
+=======
+>>>>>>> [SOV-595] skipped this test for windows, it passes fine on ubuntu, so must be os dependent issue, which will be fixed as part of SOV-595, till then, disabling this test for windows
 @pytest.mark.skipif('sys.platform == "win32"', reason='SOV-595')
 def testStartLedgerWithoutNewLineAppendedToLastRecord(ledger):
     txnStr = '{"data":{"alias":"Node1","client_ip":"127.0.0.1","client_port":9702,"node_ip":"127.0.0.1",' \
