@@ -139,7 +139,7 @@ def testWindows() {
         sh 'docker exec -i test-container cmd /c "cd \"C:\\test\" && dir"'
         sh 'docker exec -i test-container cmd /c "cd \"C:\\test\" && python setup.py install"'
         sh 'docker exec -i test-container cmd /c "cd \"C:\\test\" && pip install pytest"'
-        sh 'docker exec -i test-container cmd /c "cd \"C:\\test\" && python -m pytest --junitxml=test-result.xml"'
+        sh 'docker exec -i test-container cmd /c "cd \"C:\\test\ledger" && python -m pytest --junitxml=../test-result.xml"'
         sh 'docker stop test-container'
         sh 'docker rm test-container'
         junit 'test-result.xml'
