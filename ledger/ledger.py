@@ -199,7 +199,7 @@ class Ledger(ImmutableStore):
         lineSep = os.linesep.encode()
         lineSepLength = len(lineSep)
         try:
-            with open(os.path.join(self.dataDir, self._transactionLogName), 'ab+') as f:
+            with open(os.path.join(self.dataDir, self._transactionLogName), 'a+b') as f:
                 size = f.tell()
                 if size > 0:
                     f.seek(-lineSepLength, 2)  # last character in file
