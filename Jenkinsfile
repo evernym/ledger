@@ -9,7 +9,7 @@ try {
         parallel 'ubuntu-test':{
             node('ubuntu') {
                 stage('Ubuntu Test') {
-                    //testUbuntu()
+                    testUbuntu()
                 }
             }
         },
@@ -24,13 +24,13 @@ try {
 
     if (env.BRANCH_NAME != 'master' && env.BRANCH_NAME != 'stable') {
         echo "Ledger ${env.BRANCH_NAME}: skip publishing"
-        //return
+        return
     }
 
     // 2. PUBLISH TO PYPI
     stage('Publish to pypi') {
         node('ubuntu') {
-            //version = publishToPypi()
+            version = publishToPypi()
         }
     }
 
