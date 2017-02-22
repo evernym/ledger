@@ -146,7 +146,7 @@ def testWindows() {
     }
     finally {
         echo 'Ubuntu Test: Cleanup'
-        step([$class: 'WsCleanup'])
+        //step([$class: 'WsCleanup'])
     }
 }
 
