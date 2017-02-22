@@ -162,18 +162,18 @@ def buildDeb() {
         sh 'chmod -R 777 ci'
         sh 'ci/prepare-package.sh . $BUILD_NUMBER'
 
-        echo 'Build deb packages: get packaging code'
-        git branch: 'jenkins-poc', credentialsId: 'evernym-githib-user', url: 'https://github.com/evernym/sovrin-packaging'
+        dir('sovrin-packaging') {
+            echo 'Build deb packages: get packaging code'
+            git branch: 'jenkins-poc', credentialsId: 'evernym-githib-user', url: 'https://github.com/evernym/sovrin-packaging'
 
-        echo 'Build deb packages: Build debs'
-        def sourcePath = sh(returnStdout: true, script: 'readlink -f .').trim()
-        echo 'sourcePath: $sourcePath'
-        sh 'cd sovrin-packaging'
-        sh 'pack-debs $BUILD_NUMBER ledger $sourcePath'
+            echo 'Build deb packages: Build debs'
+            def sourcePath = sh(returnStdout: true, script: 'readlink -f ..').trim()
+            sh "./pack-debs $BUILD_NUMBER ledger $sourcePath"
 
-        echo 'Build deb packages: Publish debs'
-        def repo = env.BRANCH_NAME == 'stable' ? 'rc' : 'master'
-        sh 'upload-build $BUILD_NUMBER ledger $repo'
+            echo 'Build deb packages: Publish debs'
+            def repo = env.BRANCH_NAME == 'stable' ? 'rc' : 'master'
+            //sh "./upload-debs $BUILD_NUMBER ledger $repo"
+        }
     }
     finally {
         echo 'Build deb packages: Cleanup'
