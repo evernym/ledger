@@ -1,5 +1,6 @@
 #!groovy​
 
+def success = true
 try {
 
 // ALL BRANCHES: master, stable, PRs
@@ -122,9 +123,15 @@ try {
     }
 
 } catch(e) {
+    success = false
     currentBuild.result = "FAILED"
     notifyFailed()
     throw e
+} finally {
+    if (success) {
+        currentBuild.result = "SUCCESS"
+        notifySuccess()
+    }
 }
 
 def testUbuntu() {
@@ -315,6 +322,20 @@ def notifyFailed() {
         ],
         replyTo: '$DEFAULT_REPLYTO',
         subject: '$DEFAULT_SUBJECT',
+        to: '$DEFAULT_RECIPIENTS'
+       )
+}
+
+def notifySuccess() {
+    emailext (
+        body: '$DEFAULT_CONTENT',
+        recipientProviders: [
+            [$class: 'CulpritsRecipientProvider'],
+            [$class: 'DevelopersRecipientProvider'],
+            [$class: 'RequesterRecipientProvider']
+        ],
+        replyTo: '$DEFAULT_REPLYTO',
+        subject: "New ${BRANCH_NAME} build 'ledger-$version'",
         to: '$DEFAULT_RECIPIENTS'
        )
 }
