@@ -14,8 +14,10 @@ try {
             }
         },
         'windows-test':{
-            stage('Windows Test') {
-                testWindows()
+            node('windows') {
+                stage('Windows Test') {
+                    testWindows()
+                }
             }
         },
         'windows-no-docker-test':{
@@ -130,7 +132,30 @@ def testUbuntu() {
 }
 
 def testWindows() {
-    echo 'TODO: Implement me'
+    try {
+        echo 'Windows Test: Checkout csm'
+        checkout scm
+
+
+        echo 'Windows Test: Build docker image'
+        sh 'cp "ci/ledger-windows.dockerfile" Dockerfile'
+        sh 'docker build -t "ledger-windows-test" .'
+        sh 'docker rm --force ledger_test_container || true'
+        sh 'chmod -R a+w $PWD'
+        sh 'docker run -id --name ledger_test_container -v "$(cygpath -w $PWD):C:\\test" "ledger-windows-test"'
+        // XXX robocopy will return 1, and this is OK and means success (One of more files were copied successfully),
+        // that's why " || true"
+        sh 'docker exec -i ledger_test_container cmd /c "robocopy C:\\test C:\\test2 /COPYALL /E" || true'
+        sh 'docker exec -i ledger_test_container cmd /c "cd C:\\test2 && python setup.py install"'
+        sh 'docker exec -i ledger_test_container cmd /c "cd C:\\test2 && pytest --junit-xml=C:\\test\\test-result.xml"'
+        sh 'docker stop ledger_test_container'
+        sh 'docker rm ledger_test_container'
+        junit 'test-result.xml'
+    }
+    finally {
+        echo 'Ubuntu Test: Cleanup'
+        step([$class: 'WsCleanup'])
+    }
 }
 
 def testWindowsNoDocker() {
@@ -183,7 +208,7 @@ def publishToPypi() {
     }
     finally {
         echo 'Publish to pypi: Cleanup'
-        step([$class: 'WsCleanup'])
+        //step([$class: 'WsCleanup'])
     }
 }
 
