@@ -155,27 +155,30 @@ def publishToPypi() {
 
 def buildDeb() {
     try {
-        echo 'Build deb packages: Checkout csm'
+        //echo 'Build deb packages: Checkout csm'
         checkout scm
 
-        echo 'Build deb packages: Prepare package'
+        //echo 'Build deb packages: Prepare package'
         sh 'chmod -R 777 ci'
         sh 'ci/prepare-package.sh . $BUILD_NUMBER'
 
-        echo 'Build deb packages: get packaging code'
+        //echo 'Build deb packages: get packaging code'
         dir('sovrin-packaging') {
             git branch: 'jenkins-poc', credentialsId: 'evernym-githib-user', url: 'https://github.com/evernym/sovrin-packaging'
+            sh './pack-debs $BUILD_NUMBER ledger ..'
+            def repo = env.BRANCH_NAME == 'stable' ? 'rc' : 'master'
+            sh './upload-build $BUILD_NUMBER ledger $repo'
         }
 
-        echo 'Build deb packages: Build debs'
+        //echo 'Build deb packages: Build debs'
         //def sourcePath = sh(returnStdout: true, script: 'readlink -f .').trim()
         //echo 'sourcePath: $sourcePath'
-        sh 'cd sovrin-packaging'
-        sh './sovrin-packaging/pack-debs $BUILD_NUMBER ledger ..'
+        //sh 'cd sovrin-packaging'
+        //sh './sovrin-packaging/pack-debs $BUILD_NUMBER ledger ..'
 
-        echo 'Build deb packages: Publish debs'
-        def repo = env.BRANCH_NAME == 'stable' ? 'rc' : 'master'
-        sh './sovrin-packaging/upload-build $BUILD_NUMBER ledger $repo'
+        //echo 'Build deb packages: Publish debs'
+        //def repo = env.BRANCH_NAME == 'stable' ? 'rc' : 'master'
+        //sh './sovrin-packaging/upload-build $BUILD_NUMBER ledger $repo'
     }
     finally {
         echo 'Build deb packages: Cleanup'
