@@ -263,7 +263,9 @@ def buildDeb() {
     }
     finally {
         echo 'Build deb packages: Cleanup'
-        deleteDir('sovrin-packaging')
+        dir('sovrin-packaging') {
+            deleteDir()
+        }
         step([$class: 'WsCleanup'])
     }
 }
