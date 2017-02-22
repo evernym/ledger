@@ -14,8 +14,17 @@ try {
             }
         },
         'windows-test':{
-            stage('Windows Test') {
-                testWindows()
+            node('windows2016') {
+                stage('Windows Test') {
+                    testWindows()
+                }
+            }
+        },
+        'windows-no-docker-test':{
+            node('windows2012') {
+                stage('Windows No Docker Test') {
+                    testWindowsNoDocker()
+                }
             }
         }
     }
@@ -52,7 +61,16 @@ try {
 
     // 4. SYSTEM TESTS
     stage('System tests') {
-        systemTests()
+        parallel 'ubuntu-system-tests':{
+            stage('Ubuntu system tests') {
+                ubuntuSystemTests()
+            }
+        },
+        'windows-system-tests':{
+            stage('Windows system tests') {
+                windowsSystemTests()
+            }
+        }
     }
 
 // MASTER ONLY
@@ -75,14 +93,32 @@ try {
         return
     }
 
-    // 6. RELEASE PACKAGES
+    // 7. RELEASE PACKAGES
     stage('Release packages') {
-        echo 'TODO: Implement me'
+        parallel 'ubuntu-release-packages':{
+            stage('Ubuntu release packages') {
+                echo 'TODO: Implement me'
+            }
+        },
+        'windows-release-packages':{
+            stage('Windows release packages') {
+                echo 'TODO: Implement me'
+            }
+        }
     }
 
-    // 7. SYSTEM TESTS FOR RELEASE
-    stage('System tests') {
-        echo 'TODO: Implement me'
+    // 8. SYSTEM TESTS FOR RELEASE
+    stage('Release system tests') {
+        parallel 'ubuntu-system-tests':{
+            stage('Ubuntu system tests') {
+                ubuntuSystemTests()
+            }
+        },
+        'windows-system-tests':{
+            stage('Windows system tests') {
+                windowsSystemTests()
+            }
+        }
     }
 
 } catch(e) {
@@ -123,7 +159,57 @@ def testUbuntu() {
 }
 
 def testWindows() {
-    echo 'TODO: Implement me'
+    try {
+        echo 'Windows Test: Checkout csm'
+        checkout scm
+
+
+        echo 'Windows Test: Build docker image'
+        sh 'cp "ci/ledger-windows.dockerfile" Dockerfile'
+        sh 'docker build -t "ledger-windows-test" .'
+        sh 'docker rm --force ledger_test_container || true'
+        sh 'chmod -R a+w $PWD'
+        sh 'docker run -id --name ledger_test_container -v "$(cygpath -w $PWD):C:\\test" "ledger-windows-test"'
+        // XXX robocopy will return 1, and this is OK and means success (One of more files were copied successfully),
+        // that's why " || true"
+        sh 'docker exec -i ledger_test_container cmd /c "robocopy C:\\test C:\\test2 /COPYALL /E" || true'
+        sh 'docker exec -i ledger_test_container cmd /c "cd C:\\test2 && python setup.py install"'
+        sh 'docker exec -i ledger_test_container cmd /c "cd C:\\test2 && pytest --junit-xml=C:\\test\\test-result.xml"'
+        sh 'docker stop ledger_test_container'
+        sh 'docker rm ledger_test_container'
+        junit 'test-result.xml'
+    }
+    finally {
+        echo 'Ubuntu Test: Cleanup'
+        step([$class: 'WsCleanup'])
+    }
+}
+
+def testWindowsNoDocker() {
+    def virtualEnvDir = "$USERPROFILE\\$BRANCH_NAME$BUILD_NUMBER"
+    try {
+        echo 'Windows No Docker Test: Checkout csm'
+        checkout scm
+
+        echo 'Windows No Docker Test: Install dependencies'
+        bat "if exist $virtualEnvDir rmdir /q /s $virtualEnvDir"
+        bat "virtualenv $virtualEnvDir"
+        bat "$virtualEnvDir\\Scripts\\python setup.py install"
+        bat "$virtualEnvDir\\Scripts\\pip install pytest"
+        
+        echo 'Windows No Docker Test: Test'
+        try {
+            bat "$virtualEnvDir\\Scripts\\python -m pytest --junitxml=test-result.xml"
+        }
+        finally {
+            junit 'test-result.xml'
+        }
+    }
+    finally {
+        echo 'Windows No Docker Test: Cleanup'
+        bat "if exist $virtualEnvDir rmdir /q /s $virtualEnvDir"
+        step([$class: 'WsCleanup'])
+    }
 }
 
 def publishToPypi() {
@@ -177,6 +263,9 @@ def buildDeb() {
     }
     finally {
         echo 'Build deb packages: Cleanup'
+        dir('sovrin-packaging') {
+            deleteDir()
+        }
         step([$class: 'WsCleanup'])
     }
 }
@@ -185,7 +274,11 @@ def buildMsi() {
     echo 'TODO: Implement me'
 }
 
-def systemTests() {
+def ubuntuSystemTests() {
+    echo 'TODO: Implement me'
+}
+
+def windowsSystemTests() {
     echo 'TODO: Implement me'
 }
 
