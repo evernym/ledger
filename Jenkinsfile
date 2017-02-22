@@ -61,7 +61,16 @@ try {
 
     // 4. SYSTEM TESTS
     stage('System tests') {
-        systemTests()
+        parallel 'ubuntu-system-tests':{
+            stage('Ubuntu system tests') {
+                ubuntuSystemTests()
+            }
+        },
+        'windows-system-tests':{
+            stage('Windows system tests') {
+                windowsSystemTests()
+            }
+        }
     }
 
 // MASTER ONLY
@@ -84,14 +93,32 @@ try {
         return
     }
 
-    // 6. RELEASE PACKAGES
+    // 7. RELEASE PACKAGES
     stage('Release packages') {
-        echo 'TODO: Implement me'
+        parallel 'ubuntu-release-packages':{
+            stage('Ubuntu release packages') {
+                echo 'TODO: Implement me'
+            }
+        },
+        'windows-release-packages':{
+            stage('Windows release packages') {
+                echo 'TODO: Implement me'
+            }
+        }
     }
 
-    // 7. SYSTEM TESTS FOR RELEASE
-    stage('System tests') {
-        echo 'TODO: Implement me'
+    // 8. SYSTEM TESTS FOR RELEASE
+    stage('Release system tests') {
+        parallel 'ubuntu-system-tests':{
+            stage('Ubuntu system tests') {
+                ubuntuSystemTests()
+            }
+        },
+        'windows-system-tests':{
+            stage('Windows system tests') {
+                windowsSystemTests()
+            }
+        }
     }
 
 } catch(e) {
@@ -231,7 +258,7 @@ def buildDeb() {
 
             echo 'Build deb packages: Publish debs'
             def repo = env.BRANCH_NAME == 'stable' ? 'rc' : 'master'
-            sh "./upload-debs $BUILD_NUMBER ledger $repo"
+            //sh "./upload-debs $BUILD_NUMBER ledger $repo"
         }
     }
     finally {
@@ -245,7 +272,11 @@ def buildMsi() {
     echo 'TODO: Implement me'
 }
 
-def systemTests() {
+def ubuntuSystemTests() {
+    echo 'TODO: Implement me'
+}
+
+def windowsSystemTests() {
     echo 'TODO: Implement me'
 }
 
