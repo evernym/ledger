@@ -19,7 +19,7 @@ try {
             }
         },
         'windows-no-docker-test':{
-            node('windows-no-docker') {
+            node('windows') {
                 stage('Windows No Docker Test') {
                     testWindowsNoDocker()
                 }
