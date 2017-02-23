@@ -172,7 +172,6 @@ def testConsistencyVerificationOnStartupCase2(tempdir):
     ledger.stop()
 
 
-@pytest.mark.skipif('sys.platform == "win32"', reason='SOV-595')
 def testStartLedgerWithoutNewLineAppendedToLastRecord(ledger):
     txnStr = '{"data":{"alias":"Node1","client_ip":"127.0.0.1","client_port":9702,"node_ip":"127.0.0.1",' \
            '"node_port":9701,"services":["VALIDATOR"]},"dest":"Gw6pDLhcBcoQesN72qfotTgFa7cbuqZpkX3Xo6pLhPhv",' \
@@ -186,7 +185,7 @@ def testStartLedgerWithoutNewLineAppendedToLastRecord(ledger):
     size1 = ledger._transactionLog.numKeys
     assert size1 == 3
     ledger.stop()
-    newLineCounts = open(ledger._transactionLog.dbPath, 'rb').read().count(lineSep) + 1
+    newLineCounts = open(ledger._transactionLog.dbPath, 'r').read().count(os.linesep) + 1
     assert newLineCounts == 3
 
     # now start ledger, and it should add the missing new line char at the end of the file, so
