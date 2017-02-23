@@ -172,6 +172,8 @@ def testConsistencyVerificationOnStartupCase2(tempdir):
     ledger.stop()
 
 
+@pytest.mark.skipif('sys.platform == "win32"', reason='SOV-603')
+@pytest.mark.skipif('sys.platform == "linux"', reason='SOV-603')
 def testStartLedgerWithoutNewLineAppendedToLastRecord(ledger):
     txnStr = '{"data":{"alias":"Node1","client_ip":"127.0.0.1","client_port":9702,"node_ip":"127.0.0.1",' \
            '"node_port":9701,"services":["VALIDATOR"]},"dest":"Gw6pDLhcBcoQesN72qfotTgFa7cbuqZpkX3Xo6pLhPhv",' \

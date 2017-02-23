@@ -165,7 +165,8 @@ class Ledger(ImmutableStore):
         }
 
     def start(self, loop=None, ensureDurability=True):
-        self.appendNewLineIfReq()
+        # commenting below line, reason='SOV-603'
+        # self.appendNewLineIfReq()
         if self._transactionLog and not self._transactionLog.closed:
             logging.debug("Ledger already started.")
         else:
