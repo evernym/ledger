@@ -4,7 +4,6 @@ import time
 from collections import OrderedDict
 
 from ledger.compact_merkle_tree import CompactMerkleTree
-from ledger.stores.memory_hash_store import MemoryHashStore
 from ledger.tree_hasher import TreeHasher
 from ledger.merkle_tree import MerkleTree
 from ledger.serializers.mapping_serializer import MappingSerializer
@@ -13,7 +12,6 @@ from ledger.stores.file_store import FileStore
 from ledger.stores.text_file_store import TextFileStore
 from ledger.immutable_store import ImmutableStore
 from ledger.util import F
-from ledger.util import ConsistencyVerificationFailed
 
 
 class Ledger(ImmutableStore):
@@ -166,6 +164,7 @@ class Ledger(ImmutableStore):
         }
 
     def start(self, loop=None, ensureDurability=True):
+        self.appendNewLineIfReq()
         if self._transactionLog and not self._transactionLog.closed:
             logging.debug("Ledger already started.")
         else:
@@ -193,3 +192,22 @@ class Ledger(ImmutableStore):
             if to is not None and seqNo > to:
                 break
         return result
+
+    def appendNewLineIfReq(self):
+        import os
+        import getpass
+        lineSep = os.linesep.encode()
+        lineSepLength = len(lineSep)
+        try:
+            filePath = os.path.join(self.dataDir, self._transactionLogName)
+            logging.debug("new line check for file: {}".format(filePath))
+            logging.debug("current user when appending new line: {}".
+                          format(getpass.getuser()))
+            with open(filePath, 'a+b') as f:
+                size = f.tell()
+                if size > 0:
+                    f.seek(-lineSepLength, 2)  # last character in file
+                    if f.read() != lineSep:
+                        f.write(lineSep)
+        except FileNotFoundError:
+            pass
