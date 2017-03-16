@@ -32,7 +32,8 @@ class DirectoryStore:
 
     def get(self, key: str):
         if self.exists(key):
-            return open(self.keyFilePath(key)).read()
+            with open(self.keyFilePath(key)) as f:
+                return f.read()
 
     def put(self, key: str, value: str):
         with open(self.keyFilePath(key), "w") as f:
