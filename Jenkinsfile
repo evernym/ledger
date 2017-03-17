@@ -142,12 +142,12 @@ def testUbuntu() {
 
 
         echo 'Ubuntu Test: Build docker image'
-        sh 'ln -sf ci/ledger-ubuntu.dockerfile Dockerfile'
+        sh 'ln -sf ci/ubuntu.dockerfile Dockerfile'
         def testEnv = docker.build 'ledger-test'
 
         testEnv.inside {
             echo 'Ubuntu Test: Install dependencies'
-            sh 'cd /home/sovrin && virtualenv -p python3.5 test'
+
             sh '/home/sovrin/test/bin/python setup.py install'
             sh '/home/sovrin/test/bin/pip install pytest'
 
@@ -171,9 +171,8 @@ def testWindows() {
         echo 'Windows Test: Checkout csm'
         checkout scm
 
-
         echo 'Windows Test: Build docker image'
-        sh 'cp "ci/ledger-windows.dockerfile" Dockerfile'
+        sh 'cp "ci/windows.dockerfile" Dockerfile'
         sh 'docker build -t "ledger-windows-test" .'
         sh 'docker rm --force ledger_test_container || true'
         sh 'chmod -R a+w $PWD'
@@ -181,7 +180,7 @@ def testWindows() {
         // XXX robocopy will return 1, and this is OK and means success (One of more files were copied successfully),
         // that's why " || true"
         sh 'docker exec -i ledger_test_container cmd /c "robocopy C:\\test C:\\test2 /COPYALL /E" || true'
-        sh 'docker exec -i ledger_test_container cmd /c "cd C:\\test2 && python setup.py install"'
+        sh 'docker exec -i ledger_test_container cmd /c "cd C:\\test2 && pip install ."'
         sh 'docker exec -i ledger_test_container cmd /c "cd C:\\test2 && pytest --junit-xml=C:\\test\\test-result.xml"'
         sh 'docker stop ledger_test_container'
         sh 'docker rm ledger_test_container'
