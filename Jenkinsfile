@@ -142,8 +142,8 @@ def testUbuntu() {
 
 
         echo 'Ubuntu Test: Build docker image'
-        sh 'ln -sf ci/ubuntu.dockerfile Dockerfile'
-        def testEnv = docker.build 'ledger-test'
+        def uid = sh(returnStdout: true, script: 'id -u').trim()
+        def testEnv = docker.build('ledger-test', "--build-arg uid=${uid} -f ci/ubuntu.dockerfile ci")
 
         testEnv.inside {
             echo 'Ubuntu Test: Install dependencies'
