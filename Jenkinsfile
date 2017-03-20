@@ -32,8 +32,6 @@ def testWindows = {
         checkout scm
 
         echo 'Windows Test: Build docker image'
-        dockerHelpers.buildRunExecWindows(name, [])
-        junit 'test-result.xml'
     }
     finally {
         echo 'Windows Test: Cleanup'
