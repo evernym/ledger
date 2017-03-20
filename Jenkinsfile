@@ -33,8 +33,8 @@ def testWindows = {
 
         echo 'Windows Test: Build docker image'
         cmds = []
-        cmds.addAll(testHelpers.installDepsWindowsCommands())
         cmds.addAll(testHelpers.testJunitWindowsCommands())
+        cmds.addAll(testHelpers.installDepsWindowsCommands())
         dockerHelpers.buildAndRunWindows(name, cmds)
         junit 'test-result.xml'
     }
