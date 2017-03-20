@@ -10,7 +10,7 @@ def testUbuntu = {
         checkout scm
 
         echo 'Ubuntu Test: Build docker image'
-        def testEnv = docker.build("$name-test", "--build-arg uid=${helpers.getUserUid()} -f ci/ubuntu.dockerfile ci")
+        def testEnv = dockerHelpers.build(name)
 
         testEnv.inside {
             echo 'Ubuntu Test: Install dependencies'
@@ -32,7 +32,7 @@ def testWindows = {
         checkout scm
 
         echo 'Windows Test: Build docker image'
-        dockerHelpers.buildRunExecWindows(name, testHelpers.installDepsWindowsCommands() + testHelpers.testJunitWindowsCommands())
+        dockerHelpers.execWindows(name, testHelpers.installDepsWindowsCommands() + testHelpers.testJunitWindowsCommands())
         junit 'test-result.xml'
     }
     finally {
