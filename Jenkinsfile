@@ -32,7 +32,10 @@ def testWindows = {
         checkout scm
 
         echo 'Windows Test: Build docker image'
-        dockerHelpers.buildAndRunWindows(name, (testHelpers.installDepsWindowsCommands() + testHelpers.testJunitWindowsCommands() + ["ls -a"]))
+        cmds = []
+        cmds.addAll(testHelpers.installDepsWindowsCommands())
+        cmds.addAll(testHelpers.testJunitWindowsCommands())
+        dockerHelpers.buildAndRunWindows(name, cmds)
         junit 'test-result.xml'
     }
     finally {
