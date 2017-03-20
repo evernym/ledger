@@ -52,7 +52,7 @@ def testWindowsNoDocker = {
             
             echo 'Windows No Docker Test: Test'
             testHelpers.testJunit('test-result.xml', python, pip)
-        }, false)
+        })
     }
     finally {
         echo 'Windows No Docker Test: Cleanup'
