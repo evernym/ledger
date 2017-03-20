@@ -32,12 +32,11 @@ def testWindows = {
         checkout scm
 
         echo 'Windows Test: Build docker image'
-        dockerHelpers.buildRunExecWindows(name,
-            testHelpers.installDepsWindowsCommands() + testHelpers.testJunitWindowsCommands())
+        dockerHelpers.buildRunExecWindows(name, testHelpers.installDepsWindowsCommands() + testHelpers.testJunitWindowsCommands())
         junit 'test-result.xml'
     }
     finally {
-        echo 'Ubuntu Test: Cleanup'
+        echo 'Windows Test: Cleanup'
         step([$class: 'WsCleanup'])
     }
 }
