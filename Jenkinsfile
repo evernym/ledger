@@ -10,7 +10,7 @@ def testUbuntu = {
         checkout scm
 
         echo 'Ubuntu Test: Build docker image'
-        def testEnv = dockerHelpers.build(name)
+        def testEnv = docker.build("$name-test", "--build-arg uid=${helpers.getUserUid()} -f ci/ubuntu.dockerfile ci")
 
         testEnv.inside {
             echo 'Ubuntu Test: Install dependencies'
