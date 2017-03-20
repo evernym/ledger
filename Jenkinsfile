@@ -10,7 +10,7 @@ def testUbuntu = {
         checkout scm
 
         echo 'Ubuntu Test: Build docker image'
-        def testEnv = dockerHelpers.build(name)
+        def testEnv = dockerHelpers.buildImage(name)
 
         testEnv.inside {
             echo 'Ubuntu Test: Install dependencies'
@@ -32,7 +32,7 @@ def testWindows = {
         checkout scm
 
         echo 'Windows Test: Build docker image'
-        dockerHelpers.execWindows(name, testHelpers.installDepsWindowsCommands() + testHelpers.testJunitWindowsCommands())
+        dockerHelpers.buildImageAndRunWindows(name, testHelpers.installDepsWindowsCommands() + testHelpers.testJunitWindowsCommands())
         junit 'test-result.xml'
     }
     finally {
