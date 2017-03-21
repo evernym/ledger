@@ -48,10 +48,10 @@ def testWindowsNoDocker = {
 
         testHelpers.createVirtualEnvAndExecute({ python, pip ->
             echo 'Windows No Docker Test: Install dependencies'
-            testHelpers.installDeps([], python, pip)
+            testHelpers.installDepsBat(python, pip)
             
             echo 'Windows No Docker Test: Test'
-            testHelpers.testJunit('test-result.xml', python)
+            testHelpers.testJunitBat(python, pip)
         })
     }
     finally {
