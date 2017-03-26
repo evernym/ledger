@@ -31,10 +31,6 @@ def checkConsistency(tree, verifier):
                                                 proof=proof)
 
 
-def makeTempdir(factory, counter):
-    return os.path.join(factory.getbasetemp().strpath, str(next(counter)))
-
-
 class NoTransactionRecoveryLedger(Ledger):
     def recoverTreeFromTxnLog(self):
         pass

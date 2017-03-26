@@ -11,7 +11,7 @@ from ledger.stores.hash_store import HashStore
 from ledger.tree_hasher import TreeHasher
 from ledger.stores.memory_hash_store import MemoryHashStore
 from ledger.stores.file_hash_store import FileHashStore
-from ledger.test.helper import checkConsistency, makeTempdir
+from ledger.test.helper import checkConsistency
 from ledger.util import STH
 
 """
@@ -110,16 +110,10 @@ hexlify(c(
 """
 
 
-@pytest.fixture(scope='module')
-def tempdir(tmpdir_factory, counter):
-    return makeTempdir(tmpdir_factory, counter)
-
-
 @pytest.yield_fixture(scope="module", params=['File', 'Memory'])
-def hashStore(request, tempdir):
+def hashStore(request, tdir):
     if request.param == 'File':
-        # with TemporaryDirectory() as tempdir:
-        fhs = FileHashStore(tempdir)
+        fhs = FileHashStore(tdir)
         yield fhs
     elif request.param == 'Memory':
         yield MemoryHashStore()
