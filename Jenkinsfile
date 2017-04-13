@@ -62,17 +62,14 @@ def testWindowsNoDocker = {
 
 //testAndPublish(name, [ubuntu: testUbuntu, windows: testWindows, windowsNoDocker: testWindowsNoDocker])
 
-def options = new TestAndPublishOptions()
-options.skip([
-    StagesEnum.PYPI_RELEASE, StagesEnum.GITHUB_RELEASE_ST, //XXX debug
-    StagesEnum.PACK_RELEASE,
-    StagesEnum.QA_NOTIF, StagesEnum.QA_APPROVAL,
-    StagesEnum.PRODUCT_NOTIF, StagesEnum.PRODUCT_APPROVAL,
-    StagesEnum.TGB_NOTIF, StagesEnum.TGB_APPROVAL,
-    StagesEnum.PYPI_RELEASE_ST, StagesEnum.PACK_RELEASE_ST, StagesEnum.GITHUB_RELEASE_ST,
-    StagesEnum.POOL_UPDATE_NOTIF
-])
+// XXX the following code expected as temporary for that branch only
+testAndPublish(name, [ubuntu: testUbuntu], false) // run tests only
 
-testAndPublish(name, [ubuntu: testUbuntu], true, options)
+def releaseVersion = ''
+stage('Get release version') {
+    node('ubuntu-master') {
+        releaseVersion = getReleaseVersion()
+    }
+}
 
-
+//testAndPublish.publishPypi('Publish to pypi', [:], releaseVersion)
