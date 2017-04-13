@@ -64,6 +64,7 @@ def testWindowsNoDocker = {
 
 def options = new TestAndPublishOptions()
 options.skip([
+    StagesEnum.PYPI_RELEASE, StagesEnum.GITHUB_RELEASE_ST, //XXX debug
     StagesEnum.PACK_RELEASE,
     StagesEnum.QA_NOTIF, StagesEnum.QA_APPROVAL,
     StagesEnum.PRODUCT_NOTIF, StagesEnum.PRODUCT_APPROVAL,
