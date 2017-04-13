@@ -72,4 +72,4 @@ stage('Get release version') {
     }
 }
 
-//testAndPublish.publishPypi('Publish to pypi', [:], releaseVersion)
+testAndPublish.publishPypi('Publish to pypi', [:], releaseVersion)
