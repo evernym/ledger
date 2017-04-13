@@ -61,4 +61,17 @@ def testWindowsNoDocker = {
 }
 
 //testAndPublish(name, [ubuntu: testUbuntu, windows: testWindows, windowsNoDocker: testWindowsNoDocker])
-testAndPublish(name, [ubuntu: testUbuntu])
+
+def options = new TestAndPublishOptions()
+options.skip([
+    StagesEnum.PACK_RELEASE,
+    StagesEnum.QA_NOTIF, StagesEnum.QA_APPROVAL,
+    StagesEnum.PRODUCT_NOTIF, StagesEnum.PRODUCT_APPROVAL,
+    StagesEnum.TGB_NOTIF, StagesEnum.TGB_APPROVAL,
+    StagesEnum.PYPI_RELEASE_ST, StagesEnum.PACK_RELEASE_ST, StagesEnum.GITHUB_RELEASE_ST,
+    StagesEnum.POOL_UPDATE_NOTIF
+])
+
+testAndPublish(name, [ubuntu: testUbuntu], true, options)
+
+
