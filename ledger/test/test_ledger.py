@@ -63,6 +63,8 @@ def testAddTxn(tempdir, ledger):
     assert ledger.size == 2
 
     # Check that the data is appended to the immutable store
+    txn1[F.seqNo.name] = 1
+    txn2[F.seqNo.name] = 2
     assert txn1 == ledger[1]
     assert txn2 == ledger[2]
 
