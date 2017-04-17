@@ -66,4 +66,4 @@ options = new TestAndPublishOptions()
 options.skip([StagesEnum.GITHUB_RELEASE])
 options.setPublishableBranches(['3pc-batch']) //REMOVE IT BEFORE MERGE
 options.setPostfixes([master: '3pc-batch']) //REMOVE IT BEFORE MERGE
-testAndPublish(name, [ubuntu: testUbuntu], false, options)
+testAndPublish(name, [ubuntu: testUbuntu], true, options)
