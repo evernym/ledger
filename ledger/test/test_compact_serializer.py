@@ -88,7 +88,7 @@ def testDeserializeFromString():
     assert {"f1": "v1", "f2": "v2", "f3": 3, "f4": 4.0, "f5": True} == \
             serializer.deserialize("v1|v2|3|4.0|True")
 
-def testDeserializForFields():
+def testDeserializeForFields():
     serializer = CompactSerializer(fields)
 
     newFields = OrderedDict([
@@ -134,11 +134,11 @@ def testSerializeLessFieldsWithNone():
 def testSerializeInAnyOrder():
     serializer = CompactSerializer(fields)
 
-    assert b"|v1|2||" == serializer.serialize({"f3": 2, "f2": "v1"})
-    assert b"v1||||3" == serializer.serialize({"f5": 3, "f1": "v1", })
+    assert b"|v1|2||" == serializer.serialize(OrderedDict([("f3", 2), ("f2", "v1")]))
+    assert b"v1||||3" == serializer.serialize(OrderedDict([("f5", 3), ("f1", "v1")]))
     assert b"v1|v2|3|4.0|True" == \
            serializer.serialize(
-               {"f2": "v2", "f5": True, "f3": 3, "f1": "v1", "f4": 4.0}
+               OrderedDict([("f2", "v2"), ("f5", True), ("f3", 3), ("f1", "v1"), ("f4", 4.0)])
            )
 
 def testSerializeSubfields():
