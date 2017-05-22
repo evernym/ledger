@@ -117,6 +117,29 @@ def testRecoverLedgerFromHashStore(tempdir):
     assert restartedLedger.tree.hashes == updatedTree.hashes
     assert restartedLedger.tree.root_hash == updatedTree.root_hash
 
+def testRecoverLedgerNewFieldsToTxnsAdded(tempdir):
+    fhs = FileHashStore(tempdir)
+    tree = CompactMerkleTree(hashStore=fhs)
+    ledger = Ledger(tree=tree, dataDir=tempdir, serializer=ledgerSerializer)
+    for d in range(10):
+        ledger.add({"identifier": "i{}".format(d), "reqId": d, "op": "operation"})
+    updatedTree = ledger.tree
+    ledger.stop()
+
+    newOrderedFields = OrderedDict([
+        ("identifier", (str, str)),
+        ("reqId", (str, int)),
+        ("op", (str, str)),
+        ("newField", (str, str))
+    ])
+    newLedgerSerializer = CompactSerializer(newOrderedFields)
+
+    tree = CompactMerkleTree(hashStore=fhs)
+    restartedLedger = Ledger(tree=tree, dataDir=tempdir, serializer=newLedgerSerializer)
+    assert restartedLedger.size == ledger.size
+    assert restartedLedger.root_hash == ledger.root_hash
+    assert restartedLedger.tree.hashes == updatedTree.hashes
+    assert restartedLedger.tree.root_hash == updatedTree.root_hash
 
 def testConsistencyVerificationOnStartupCase1(tempdir):
     """

@@ -97,8 +97,9 @@ class Ledger(ImmutableStore):
         # This must be fixed!
         self.tree.hashStore.reset()
         for key, entry in self._transactionLog.iterator():
-            record = self.leafSerializer.deserialize(entry)
-            self._addToTree(record)
+            if isinstance(entry, str):
+                entry = entry.encode()
+            self._addToTreeSerialized(entry)
 
     def recoverTreeFromHashStore(self):
         treeSize = self.tree.leafCount
@@ -115,6 +116,9 @@ class Ledger(ImmutableStore):
 
     def _addToTree(self, leafData):
         serializedLeafData = self.serializeLeaf(leafData)
+        return self._addToTreeSerialized(serializedLeafData)
+
+    def _addToTreeSerialized(self, serializedLeafData):
         auditPath = self.tree.append(serializedLeafData)
         self.seqNo += 1
         merkleInfo = {
