@@ -18,12 +18,17 @@ from ledger.util import F
 class Ledger(ImmutableStore):
 
     @staticmethod
-    def _defaultStore(dataDir, logName, ensureDurability) -> FileStore:
+    def _defaultStore(dataDir,
+                      logName,
+                      ensureDurability,
+                      defaultFile) -> FileStore:
+
         return TextFileStore(dataDir,
-                                logName,
-                                isLineNoKey=True,
-                                storeContentHash=False,
-                                ensureDurability=ensureDurability)
+                             logName,
+                             isLineNoKey=True,
+                             storeContentHash=False,
+                             ensureDurability=ensureDurability,
+                             defaultFile=defaultFile)
 
     def __init__(self,
                  tree: MerkleTree,
@@ -31,7 +36,8 @@ class Ledger(ImmutableStore):
                  serializer: MappingSerializer=None,
                  fileName: str=None,
                  ensureDurability: bool=True,
-                 transactionLogStore: FileStore = None):
+                 transactionLogStore: FileStore=None,
+                 defaultFile=None):
         """
         :param tree: an implementation of MerkleTree
         :param dataDir: the directory where the transaction log is stored
@@ -39,6 +45,9 @@ class Ledger(ImmutableStore):
         it and storing it in the MerkleTree
         :param fileName: the name of the transaction log file
         """
+        assert not transactionLogStore or not defaultFile
+        self.defaultFile = defaultFile
+
         self.dataDir = dataDir
         self.tree = tree
         self.leafSerializer = serializer or \
@@ -194,12 +203,10 @@ class Ledger(ImmutableStore):
             ensureDurability = ensureDurability or self.ensureDurability
             self._transactionLog = \
                 self._customTransactionLogStore or \
-                Ledger._defaultStore(self.dataDir,      # This is wrong, use the code commented below
-                                     self._transactionLogName,
-                                     ensureDurability)
-                # self.__class__._defaultStore(self.dataDir,
-                #                      self._transactionLogName,
-                #                      ensureDurability)
+                self._defaultStore(self.dataDir,
+                                   self._transactionLogName,
+                                   ensureDurability,
+                                   self.defaultFile)
             self._transactionLog.appendNewLineIfReq()
 
     def stop(self):
@@ -210,6 +217,7 @@ class Ledger(ImmutableStore):
 
     def getAllTxn(self, frm: int=None, to: int=None):
         result = OrderedDict()
+        # TODO: Refactor this to use polymorphism instead
         if frm and to and isinstance(self._transactionLog, ChunkedFileStore):
             for seqNo, txn in self._transactionLog.get_range(frm, to):
                 result[seqNo] = self.leafSerializer.deserialize(txn)

@@ -11,9 +11,14 @@ class TextFileStore(FileStore):
                  dbName,
                  isLineNoKey: bool=False,
                  storeContentHash: bool=True,
-                 ensureDurability: bool=True):
-        super().__init__(dbDir, dbName, isLineNoKey,
-                         storeContentHash, ensureDurability)
+                 ensureDurability: bool=True,
+                 defaultFile=None):
+        super().__init__(dbDir,
+                         dbName,
+                         isLineNoKey,
+                         storeContentHash,
+                         ensureDurability,
+                         defaultFile=defaultFile)
         self._initDB(dbDir, dbName)
 
     def _initDB(self, dbDir, dbName):

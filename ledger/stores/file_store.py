@@ -1,5 +1,6 @@
 import logging
 import os
+import shutil
 from hashlib import sha256
 
 
@@ -7,9 +8,15 @@ class FileStore:
     """
     A file based implementation of a key value store.
     """
-    def __init__(self, dbDir, dbName, isLineNoKey: bool=False,
-                 storeContentHash: bool=True, ensureDurability: bool=True,
-                 delimiter = "\t", lineSep = "\r\n"):
+    def __init__(self,
+                 dbDir,
+                 dbName,
+                 isLineNoKey: bool=False,
+                 storeContentHash: bool=True,
+                 ensureDurability: bool=True,
+                 delimiter="\t",
+                 lineSep="\r\n",
+                 defaultFile=None):
         """
         :param dbDir: The directory where the file storing the data would be
         present
@@ -24,6 +31,7 @@ class FileStore:
         it makes sense to disable flush and fsync on every write
         :param delimiter: delimiter between key and value
         :param lineSep: line separator - defaults to \r\n
+        :param defaultFile: file or dir to use for initialization 
 
         """
         self.delimiter = delimiter
@@ -31,12 +39,28 @@ class FileStore:
         self.isLineNoKey = isLineNoKey
         self.storeContentHash = storeContentHash
         self.ensureDurability = ensureDurability
+        self._defaultFile = defaultFile
+
+    def _prepareFiles(self, dbDir, dbName, defaultFile):
+        if not defaultFile:
+            return
+        if not os.path.exists(defaultFile):
+            errMessage = "File that should be used for " \
+                         "initialization does not exist: {}"\
+                         .format(defaultFile)
+            logging.warning(errMessage)
+            raise ValueError(errMessage)
+        dataLocation = os.path.join(self.dbDir, dbName)
+        copy = shutil.copy if os.path.isfile(defaultFile) else shutil.copytree
+        copy(defaultFile, dataLocation)
 
     def _prepareDBLocation(self, dbDir, dbName):
         self.dbDir = dbDir
         self.dbName = dbName
         if not os.path.exists(self.dbDir):
             os.makedirs(self.dbDir)
+        if not os.path.exists(os.path.join(dbDir, dbName)):
+            self._prepareFiles(dbDir, dbName, self._defaultFile)
 
     def _initDB(self, dbDir, dbName):
         self._prepareDBLocation(dbDir, dbName)
@@ -178,3 +202,9 @@ class FileStore:
     # noinspection PyUnresolvedReferences
     def reset(self):
         self.dbFile.truncate(0)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
