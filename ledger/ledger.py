@@ -4,6 +4,7 @@ import time
 from collections import OrderedDict
 
 from ledger.compact_merkle_tree import CompactMerkleTree
+from ledger.stores.chunked_file_store import ChunkedFileStore
 from ledger.tree_hasher import TreeHasher
 from ledger.merkle_tree import MerkleTree
 from ledger.serializers.mapping_serializer import MappingSerializer
@@ -15,16 +16,39 @@ from ledger.util import F
 
 
 class Ledger(ImmutableStore):
-    def __init__(self, tree: MerkleTree, dataDir: str,
-                 serializer: MappingSerializer=None, fileName: str=None,
-                 ensureDurability: bool=True):
+
+    @staticmethod
+    def _defaultStore(dataDir,
+                      logName,
+                      ensureDurability,
+                      defaultFile) -> FileStore:
+
+        return TextFileStore(dataDir,
+                             logName,
+                             isLineNoKey=True,
+                             storeContentHash=False,
+                             ensureDurability=ensureDurability,
+                             defaultFile=defaultFile)
+
+    def __init__(self,
+                 tree: MerkleTree,
+                 dataDir: str,
+                 serializer: MappingSerializer=None,
+                 fileName: str=None,
+                 ensureDurability: bool=True,
+                 transactionLogStore: FileStore=None,
+                 defaultFile=None):
         """
         :param tree: an implementation of MerkleTree
         :param dataDir: the directory where the transaction log is stored
         :param serializer: an object that can serialize the data before hashing
         it and storing it in the MerkleTree
         :param fileName: the name of the transaction log file
+        :param defaultFile: file or dir to use for initialization of transaction log store
         """
+        assert not transactionLogStore or not defaultFile
+        self.defaultFile = defaultFile
+
         self.dataDir = dataDir
         self.tree = tree
         self.leafSerializer = serializer or \
@@ -33,7 +57,8 @@ class Ledger(ImmutableStore):
         self._transactionLog = None  # type: FileStore
         self._transactionLogName = fileName or "transactions"
         self.ensureDurability = ensureDurability
-        self.start(ensureDurability=ensureDurability)
+        self._customTransactionLogStore = transactionLogStore
+        self.start()
         self.seqNo = 0
         self.recoverTree()
 
@@ -77,10 +102,14 @@ class Ledger(ImmutableStore):
                       format(t))
 
     def recoverTreeFromTxnLog(self):
+        # TODO: in this and some other lines specific fields of
+        # CompactMerkleTree are used, but type of self.tree is MerkleTree
+        # This must be fixed!
         self.tree.hashStore.reset()
         for key, entry in self._transactionLog.iterator():
-            record = self.leafSerializer.deserialize(entry)
-            self._addToTree(record)
+            if isinstance(entry, str):
+                entry = entry.encode()
+            self._addToTreeSerialized(entry)
 
     def recoverTreeFromHashStore(self):
         treeSize = self.tree.leafCount
@@ -97,12 +126,15 @@ class Ledger(ImmutableStore):
 
     def _addToTree(self, leafData):
         serializedLeafData = self.serializeLeaf(leafData)
+        return self._addToTreeSerialized(serializedLeafData)
+
+    def _addToTreeSerialized(self, serializedLeafData):
         auditPath = self.tree.append(serializedLeafData)
         self.seqNo += 1
         merkleInfo = {
             F.seqNo.name: self.seqNo,
-            F.rootHash.name: base64.b64encode(self.tree.root_hash).decode(),
-            F.auditPath.name: [base64.b64encode(h).decode() for h in auditPath]
+            F.rootHash.name: self.hashToStr(self.tree.root_hash),
+            F.auditPath.name: [self.hashToStr(h) for h in auditPath]
         }
         return merkleInfo
 
@@ -113,8 +145,7 @@ class Ledger(ImmutableStore):
                                      data, toBytes=False))
 
     def append(self, txn):
-        merkleInfo = self.add(txn)
-        return merkleInfo
+        return self.add(txn)
 
     def get(self, **kwargs):
         for seqNo, value in self._transactionLog.iterator():
@@ -128,7 +159,9 @@ class Ledger(ImmutableStore):
         key = str(seqNo)
         value = self._transactionLog.get(key)
         if value:
-            return self.leafSerializer.deserialize(value)
+            data = self.leafSerializer.deserialize(value)
+            data[F.seqNo.name] = int(seqNo)
+            return data
         else:
             return value
 
@@ -151,7 +184,7 @@ class Ledger(ImmutableStore):
 
     @property
     def root_hash(self) -> str:
-        return base64.b64encode(self.tree.root_hash).decode()
+        return self.hashToStr(self.tree.root_hash)
 
     def merkleInfo(self, seqNo):
         seqNo = int(seqNo)
@@ -159,22 +192,23 @@ class Ledger(ImmutableStore):
         rootHash = self.tree.merkle_tree_hash(0, seqNo)
         auditPath = self.tree.inclusion_proof(seqNo-1, seqNo)
         return {
-            F.rootHash.name: base64.b64encode(rootHash).decode(),
-            F.auditPath.name: [base64.b64encode(h).decode() for h in auditPath]
+            F.rootHash.name: self.hashToStr(rootHash),
+            F.auditPath.name: [self.hashToStr(h) for h in auditPath]
         }
 
     def start(self, loop=None, ensureDurability=True):
-        self.appendNewLineIfReq()
         if self._transactionLog and not self._transactionLog.closed:
             logging.debug("Ledger already started.")
         else:
             logging.debug("Starting ledger...")
             ensureDurability = ensureDurability or self.ensureDurability
-            self._transactionLog = TextFileStore(self.dataDir,
-                                                 self._transactionLogName,
-                                                 isLineNoKey=True,
-                                                 storeContentHash=False,
-                                                 ensureDurability=ensureDurability)
+            self._transactionLog = \
+                self._customTransactionLogStore or \
+                self._defaultStore(self.dataDir,
+                                   self._transactionLogName,
+                                   ensureDurability,
+                                   self.defaultFile)
+            self._transactionLog.appendNewLineIfReq()
 
     def stop(self):
         self._transactionLog.close()
@@ -184,30 +218,24 @@ class Ledger(ImmutableStore):
 
     def getAllTxn(self, frm: int=None, to: int=None):
         result = OrderedDict()
-        for seqNo, txn in self._transactionLog.iterator():
-            seqNo = int(seqNo)
-            if (frm is None or seqNo >= frm) and \
-                    (to is None or seqNo <= to):
+        # TODO: Refactor this to use polymorphism instead
+        if frm and to and isinstance(self._transactionLog, ChunkedFileStore):
+            for seqNo, txn in self._transactionLog.get_range(frm, to):
                 result[seqNo] = self.leafSerializer.deserialize(txn)
-            if to is not None and seqNo > to:
-                break
+        else:
+            for seqNo, txn in self._transactionLog.iterator():
+                seqNo = int(seqNo)
+                if (frm is None or seqNo >= frm) and \
+                        (to is None or seqNo <= to):
+                    result[seqNo] = self.leafSerializer.deserialize(txn)
+                if to is not None and seqNo > to:
+                    break
         return result
 
-    def appendNewLineIfReq(self):
-        import os
-        import getpass
-        lineSep = os.linesep.encode()
-        lineSepLength = len(lineSep)
-        try:
-            filePath = os.path.join(self.dataDir, self._transactionLogName)
-            logging.debug("new line check for file: {}".format(filePath))
-            logging.debug("current user when appending new line: {}".
-                          format(getpass.getuser()))
-            with open(filePath, 'a+b') as f:
-                size = f.tell()
-                if size > 0:
-                    f.seek(-lineSepLength, 2)  # last character in file
-                    if f.read() != lineSep:
-                        f.write(lineSep)
-        except FileNotFoundError:
-            pass
+    @staticmethod
+    def hashToStr(h):
+        return base64.b64encode(h).decode()
+
+    @staticmethod
+    def strToHash(s):
+        return base64.b64decode(s).encode()

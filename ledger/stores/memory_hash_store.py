@@ -4,6 +4,7 @@ from ledger.stores.hash_store import HashStore
 class MemoryHashStore(HashStore):
     def __init__(self):
         self.reset()
+        self._closed = False
 
     def writeLeaf(self, leafHash):
         self._leafs.append(leafHash)
@@ -35,3 +36,10 @@ class MemoryHashStore(HashStore):
         self._nodes = []
         self._leafs = []
         return True
+
+    def close(self):
+        self._closed = True
+
+    @property
+    def closed(self):
+        return self._closed

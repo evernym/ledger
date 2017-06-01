@@ -95,6 +95,10 @@ class FileHashStore(HashStore):
     def nodeCount(self) -> int:
         return self.nodesFile.dbFile.seek(0, 2) // self.nodeSize
 
+    @property
+    def closed(self):
+        return self.nodesFile.dbFile.closed and self.leavesFile.dbFile.closed
+
     def close(self):
         self.nodesFile.close()
         self.leavesFile.close()

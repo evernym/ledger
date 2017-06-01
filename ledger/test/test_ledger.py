@@ -33,13 +33,6 @@ orderedFields = OrderedDict([
 ])
 
 ledgerSerializer = CompactSerializer(orderedFields)
-leafSerializer = JsonSerializer()
-
-
-# @pytest.yield_fixture(scope='function')
-# def tempdir():
-#     with TemporaryDirectory() as tdir:
-#         yield tdir
 
 
 @pytest.fixture(scope="function")
@@ -69,6 +62,8 @@ def testAddTxn(tempdir, ledger):
     assert ledger.size == 2
 
     # Check that the data is appended to the immutable store
+    txn1[F.seqNo.name] = 1
+    txn2[F.seqNo.name] = 2
     assert txn1 == ledger[1]
     assert txn2 == ledger[2]
 
@@ -122,6 +117,29 @@ def testRecoverLedgerFromHashStore(tempdir):
     assert restartedLedger.tree.hashes == updatedTree.hashes
     assert restartedLedger.tree.root_hash == updatedTree.root_hash
 
+def testRecoverLedgerNewFieldsToTxnsAdded(tempdir):
+    fhs = FileHashStore(tempdir)
+    tree = CompactMerkleTree(hashStore=fhs)
+    ledger = Ledger(tree=tree, dataDir=tempdir, serializer=ledgerSerializer)
+    for d in range(10):
+        ledger.add({"identifier": "i{}".format(d), "reqId": d, "op": "operation"})
+    updatedTree = ledger.tree
+    ledger.stop()
+
+    newOrderedFields = OrderedDict([
+        ("identifier", (str, str)),
+        ("reqId", (str, int)),
+        ("op", (str, str)),
+        ("newField", (str, str))
+    ])
+    newLedgerSerializer = CompactSerializer(newOrderedFields)
+
+    tree = CompactMerkleTree(hashStore=fhs)
+    restartedLedger = Ledger(tree=tree, dataDir=tempdir, serializer=newLedgerSerializer)
+    assert restartedLedger.size == ledger.size
+    assert restartedLedger.root_hash == ledger.root_hash
+    assert restartedLedger.tree.hashes == updatedTree.hashes
+    assert restartedLedger.tree.root_hash == updatedTree.root_hash
 
 def testConsistencyVerificationOnStartupCase1(tempdir):
     """
@@ -177,7 +195,8 @@ def testStartLedgerWithoutNewLineAppendedToLastRecord(ledger):
            '"node_port":9701,"services":["VALIDATOR"]},"dest":"Gw6pDLhcBcoQesN72qfotTgFa7cbuqZpkX3Xo6pLhPhv",' \
            '"identifier":"FYmoFw55GeQH7SRFa37dkx1d2dZ3zUF8ckg7wmL7ofN4",' \
            '"txnId":"fea82e10e894419fe2bea7d96296a6d46f50f93f9eeda954ec461b2ed2950b62","type":"0"}'
-    lineSep = os.linesep.encode()
+    lineSep = ledger._transactionLog.lineSep
+    lineSep = lineSep if isinstance(lineSep, bytes) else lineSep.encode()
     ledger.start()
     ledger._transactionLog.put(txnStr)
     ledger._transactionLog.put(txnStr)
@@ -195,3 +214,5 @@ def testStartLedgerWithoutNewLineAppendedToLastRecord(ledger):
     assert size2 == size1
     newLineCountsAferLedgerStart = open(ledger._transactionLog.dbPath, 'rb').read().count(lineSep) + 1
     assert newLineCountsAferLedgerStart == 4
+    ledger._transactionLog.put(txnStr)
+    assert ledger._transactionLog.numKeys == 4

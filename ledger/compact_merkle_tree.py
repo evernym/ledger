@@ -9,6 +9,7 @@ from ledger.tree_hasher import TreeHasher
 from ledger.util import count_bits_set, lowest_bit_set
 from ledger.util import ConsistencyVerificationFailed
 
+
 class CompactMerkleTree(merkle_tree.MerkleTree):
     """Compact representation of a Merkle Tree that permits only extension.
 

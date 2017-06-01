@@ -1,4 +1,6 @@
+import logging
 import os
+import shutil
 from hashlib import sha256
 
 
@@ -6,8 +8,15 @@ class FileStore:
     """
     A file based implementation of a key value store.
     """
-    def __init__(self, dbDir, dbName, isLineNoKey: bool=False,
-                 storeContentHash: bool=True, ensureDurability: bool=True):
+    def __init__(self,
+                 dbDir,
+                 dbName,
+                 isLineNoKey: bool=False,
+                 storeContentHash: bool=True,
+                 ensureDurability: bool=True,
+                 delimiter="\t",
+                 lineSep="\r\n",
+                 defaultFile=None):
         """
         :param dbDir: The directory where the file storing the data would be
         present
@@ -20,16 +29,38 @@ class FileStore:
         This can ensure durability in most of the cases, but make
         writes extremely slow. See testMeasureWriteTime. For frequent writes,
         it makes sense to disable flush and fsync on every write
+        :param delimiter: delimiter between key and value
+        :param lineSep: line separator - defaults to \r\n
+        :param defaultFile: file or dir to use for initialization 
+
         """
+        self.delimiter = delimiter
+        self.lineSep = lineSep
         self.isLineNoKey = isLineNoKey
         self.storeContentHash = storeContentHash
         self.ensureDurability = ensureDurability
+        self._defaultFile = defaultFile
+
+    def _prepareFiles(self, dbDir, dbName, defaultFile):
+        if not defaultFile:
+            return
+        if not os.path.exists(defaultFile):
+            errMessage = "File that should be used for " \
+                         "initialization does not exist: {}"\
+                         .format(defaultFile)
+            logging.warning(errMessage)
+            raise ValueError(errMessage)
+        dataLocation = os.path.join(self.dbDir, dbName)
+        copy = shutil.copy if os.path.isfile(defaultFile) else shutil.copytree
+        copy(defaultFile, dataLocation)
 
     def _prepareDBLocation(self, dbDir, dbName):
         self.dbDir = dbDir
         self.dbName = dbName
         if not os.path.exists(self.dbDir):
             os.makedirs(self.dbDir)
+        if not os.path.exists(os.path.join(dbDir, dbName)):
+            self._prepareFiles(dbDir, dbName, self._defaultFile)
 
     def _initDB(self, dbDir, dbName):
         self._prepareDBLocation(dbDir, dbName)
@@ -81,28 +112,34 @@ class FileStore:
     def _keyValueIterator(self, lines, prefix=None):
         return self._baseIterator(lines, prefix, True, True)
 
+    def _parse_line(self, line, prefix=None, returnKey: bool=True,
+                    returnValue: bool=True, key=None):
+        if self.isLineNoKey:
+            k = key
+            v = line
+        else:
+            k, v = line.split(self.delimiter, 1)
+        if returnValue:
+            if self.storeContentHash:
+                value, _ = v.rsplit(self.delimiter, 1)
+            else:
+                value = v
+        if not prefix or k.startswith(prefix):
+            if returnKey and returnValue:
+                return k, value
+            elif returnKey:
+                return k
+            elif returnValue:
+                return value
+
     # noinspection PyUnresolvedReferences
     def _baseIterator(self, lines, prefix, returnKey: bool, returnValue: bool):
         i = 1
         for line in lines:
+            k = str(i)
+            yield self._parse_line(line, prefix, returnKey, returnValue, k)
             if self.isLineNoKey:
-                k = str(i)
-                v = line
                 i += 1
-            else:
-                k, v = line.split(self.delimiter, 1)
-            if returnValue:
-                if self.storeContentHash:
-                    value, _ = v.rsplit(self.delimiter, 1)
-                else:
-                    value = v
-            if not prefix or k.startswith(prefix):
-                if returnKey and returnValue:
-                    yield (k, value)
-                elif returnKey:
-                    yield k
-                elif returnValue:
-                    yield value
 
     def _getLines(self):
         raise NotImplementedError()
@@ -134,6 +171,21 @@ class FileStore:
             pass
         return k
 
+    def appendNewLineIfReq(self):
+        try:
+            logging.debug("new line check for file: {}".format(self.dbPath))
+            with open(self.dbPath, 'a+b') as f:
+                size = f.tell()
+                if size > 0:
+                    f.seek(-len(self.lineSep), 2)  # last character in file
+                    if f.read() != self.lineSep:
+                        linesep = self.lineSep if isinstance(self.lineSep, bytes) else self.lineSep.encode()
+                        f.write(linesep)
+                        logging.debug(
+                            "new line added for file: {}".format(self.dbPath))
+        except FileNotFoundError:
+            pass
+
     @property
     def numKeys(self):
         return sum(1 for l in self.iterator())
@@ -150,3 +202,9 @@ class FileStore:
     # noinspection PyUnresolvedReferences
     def reset(self):
         self.dbFile.truncate(0)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()

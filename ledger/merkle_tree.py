@@ -1,4 +1,4 @@
-from abc import abstractmethod, abstractproperty
+from abc import abstractmethod
 from typing import List, Tuple
 
 
@@ -32,32 +32,38 @@ class MerkleTree:
         """
         """
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def hashes(self) -> Tuple[bytes]:
         """
         """
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def root_hash(self) -> bytes:
         """
         """
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def root_hash_hex(self) -> bytes:
         """
         """
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def tree_size(self) -> int:
         """
         """
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def leafCount(self) -> int:
         """
         """
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def nodeCount(self) -> int:
         """
         """

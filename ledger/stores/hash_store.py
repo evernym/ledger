@@ -71,7 +71,8 @@ class HashStore:
         """
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def leafCount(self) -> int:
         pass
 
@@ -80,7 +81,8 @@ class HashStore:
     def leafCount(self, count: int) -> None:
         pass
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def nodeCount(self) -> None:
         pass
 
@@ -135,6 +137,23 @@ class HashStore:
         pos = self.getNodePosition(start, height)
         return self.readNode(pos)
 
+    @staticmethod
+    def _validatePos(start, end=None):
+        if end:
+            assert start < end, "start index must be less than end index"
+        if start < 1:
+            raise IndexError(
+                "seqNo starts from 1, index requested: {}".format(start))
+
+    @abstractmethod
+    def close(self):
+        pass
+
+    @property
+    @abstractmethod
+    def closed(self):
+        pass
+
     @abstractmethod
     def reset(self) -> bool:
         """
@@ -142,3 +161,4 @@ class HashStore:
 
         :return: True if completed successfully
         """
+        pass

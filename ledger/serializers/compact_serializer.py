@@ -13,17 +13,19 @@ class CompactSerializer(MappingSerializer):
       of value to and from string
     """
     def __init__(self, fields: OrderedDict=None):
+        # TODO: add a special type (class) for fields
+
         self.fields = fields
         self.delimiter = "|"
 
-    def stringify(self, name, record, fields=None):
+    def _stringify(self, name, record, fields=None):
         fields = fields or self.fields
         if record is None or record == {}:
             return ""
         encoder = fields[name][0] or str
         return encoder(record)
 
-    def destringify(self, name, string, fields=None):
+    def _destringify(self, name, string, fields=None):
         if not string:
             return None
         fields = fields or self.fields
@@ -35,7 +37,7 @@ class CompactSerializer(MappingSerializer):
         records = []
 
         def _addToRecords(name, record):
-            records.append(self.stringify(name, record, fields))
+            records.append(self._stringify(name, record, fields))
 
         for name in fields:
             if "." in name:
@@ -66,7 +68,10 @@ class CompactSerializer(MappingSerializer):
                     if part not in ref:
                         ref[part] = {}
                     ref = ref[part]
-                ref[nameParts[-1]] = self.destringify(name, items.pop(0), fields)
+                ref[nameParts[-1]] = self._destringify(name, items.pop(0), fields)
+            elif items:
+                result[name] = self._destringify(name, items.pop(0), fields)
             else:
-                result[name] = self.destringify(name, items.pop(0), fields)
+                # if we have more fields than data available, assume that all missed fields are None
+                result[name] = None
         return result
