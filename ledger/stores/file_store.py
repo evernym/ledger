@@ -178,7 +178,7 @@ class FileStore:
                 size = f.tell()
                 if size > 0:
                     f.seek(-len(self.lineSep), 2)  # last character in file
-                    if f.read() != self.lineSep:
+                    if f.read().decode() != self.lineSep:
                         linesep = self.lineSep if isinstance(self.lineSep, bytes) else self.lineSep.encode()
                         f.write(linesep)
                         logging.debug(
