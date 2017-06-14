@@ -1,9 +1,11 @@
 import os
+import pytest
 import shutil
 from typing import List
 from ledger.stores.file_store import FileStore
 from ledger.stores.text_file_store import TextFileStore
 
+chunksPerDir = 1000
 
 class ChunkedFileStore(FileStore):
     """
@@ -22,16 +24,27 @@ class ChunkedFileStore(FileStore):
 
     firstChunkIndex = 1
 
-    @staticmethod
-    def _fileNameToChunkIndex(fileName):
+    def _fileNameToChunkIndex(self, fileName) -> int:
         try:
-            return int(fileName)
+            path, fileName = os.path.split(fileName)
+
+            path = int(path)
+            fileName = int(os.path.splitext(fileName)[0])
+
+            path *= chunksPerDir
+            return path + fileName
         except:
             return None
 
     @staticmethod
     def _chunkIndexToFileName(index):
-        return str(index)
+        if isinstance(index, str):
+            index = int(os.path.splitext(index)[0])
+
+        dir_path  = int(index / chunksPerDir)
+        file_name = int(index % chunksPerDir)
+
+        return os.path.join(str(dir_path), str(file_name).zfill(4) + ".log")
 
     def __init__(self,
                  dbDir,
@@ -79,15 +92,18 @@ class ChunkedFileStore(FileStore):
                 return chunk.numKeys
 
         path = os.path.join(dbDir, dbName)
-        os.mkdir(path)
+        if not os.path.isdir(path):
+            os.mkdir(path)
         if defaultFile:
             if self.chunkSize < getFileSize(defaultFile):
                 raise ValueError("Default file is larger than chunk size")
-            firstChunk = os.path.join(path, str(self.firstChunkIndex))
-            shutil.copy(defaultFile, firstChunk)
+            first_chunk = os.path.join(path, self._chunkIndexToFileName(self.firstChunkIndex))
+            os.mkdir(first_chunk.rsplit(os.path.sep,1)[0])
+            shutil.copy(defaultFile, first_chunk)
 
     def _initDB(self, dataDir, dbName) -> None:
-        super()._initDB(dataDir, dbName)
+        self._prepareFiles(dataDir, dbName, self._defaultFile)
+
         path = os.path.join(dataDir, dbName)
         if not os.path.isdir(path):
             raise ValueError("Transactions file {} is not directory"
@@ -184,8 +200,11 @@ class ChunkedFileStore(FileStore):
         Clear all data in file storage.
         """
         self.close()
-        for f in os.listdir(self.dataDir):
-            os.remove(os.path.join(self.dataDir, f))
+        for root, dirs, files in os.walk(self.dataDir, topdown=False):
+            for name in files:
+                os.remove(os.path.join(root, name))
+            for name in dirs:
+                os.rmdir(os.path.join(root, name))
         self._useLatestChunk()
 
     def _getLines(self) -> List[str]:
@@ -220,10 +239,11 @@ class ChunkedFileStore(FileStore):
         :return: sorted list of available chunk indices
         """
         chunks = []
-        for fileName in os.listdir(self.dataDir):
-            index = ChunkedFileStore._fileNameToChunkIndex(fileName)
-            if index is not None:
-                chunks.append(index)
+        for dirName in os.listdir(self.dataDir):
+            for fileName in os.listdir(os.path.join(self.dataDir, dirName)):
+                index = self._fileNameToChunkIndex(os.path.join(os.path.split(dirName)[1],fileName))
+                if index is not None:
+                    chunks.append(index)
         return sorted(chunks)
 
     def iterator(self, includeKey=True, includeValue=True, prefix=None):
