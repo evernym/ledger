@@ -141,7 +141,7 @@ class FileStore:
             if self.isLineNoKey:
                 i += 1
 
-    def _getLines(self):
+    def _lines(self):
         raise NotImplementedError()
 
     # noinspection PyUnresolvedReferences
@@ -152,13 +152,27 @@ class FileStore:
         # Move to the beginning of file
         self.dbFile.seek(0)
 
-        lines = self._getLines()
+        lines = self._lines()
         if includeKey and includeValue:
             return self._keyValueIterator(lines, prefix=prefix)
         elif includeValue:
             return self._valueIterator(lines, prefix=prefix)
         else:
             return self._keyIterator(lines, prefix=prefix)
+
+    def is_valid_range(self, start=None, end=None):
+        assert self.isLineNoKey
+        if start and end:
+            assert start <= end
+
+    def get_range(self, start=None, end=None):
+        self.is_valid_range(start, end)
+        for k, value in self.iterator():
+            k = int(k)
+            if (start is None or k >= start) and (end is None or k <= end):
+                yield k, value
+            if end is not None and k > end:
+                break
 
     @property
     def lastKey(self):

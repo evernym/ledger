@@ -59,6 +59,9 @@ def testRandomRetrievalFromChunkedFiles(populatedChunkedFileStore):
 
 
 def testSizeChunkedFileStore(populatedChunkedFileStore):
+    """
+    Check performance of `numKeys`
+    """
     s = perf_counter()
     c1 = sum(1 for l in populatedChunkedFileStore.iterator())
     e = perf_counter()

@@ -76,7 +76,8 @@ class Ledger(ImmutableStore):
         # ATTENTION!
         # This functionality is disabled until better consistency verification
         # implemented - always using recovery from transaction log
-
+        # from ledger.stores.memory_hash_store import MemoryHashStore
+        # from ledger.util import ConsistencyVerificationFailed
         # if not self.tree.hashStore \
         #         or isinstance(self.tree.hashStore, MemoryHashStore) \
         #         or self.tree.leafCount == 0:
@@ -214,23 +215,12 @@ class Ledger(ImmutableStore):
         self._transactionLog.close()
 
     def reset(self):
+        # THIS IS A DESTRUCTIVE ACTION
         self._transactionLog.reset()
 
     def getAllTxn(self, frm: int=None, to: int=None):
-        result = OrderedDict()
-        # TODO: Refactor this to use polymorphism instead
-        if frm and to and isinstance(self._transactionLog, ChunkedFileStore):
-            for seqNo, txn in self._transactionLog.get_range(frm, to):
-                result[seqNo] = self.leafSerializer.deserialize(txn)
-        else:
-            for seqNo, txn in self._transactionLog.iterator():
-                seqNo = int(seqNo)
-                if (frm is None or seqNo >= frm) and \
-                        (to is None or seqNo <= to):
-                    result[seqNo] = self.leafSerializer.deserialize(txn)
-                if to is not None and seqNo > to:
-                    break
-        return result
+        yield from ((seq_no, self.leafSerializer.deserialize(txn))
+                    for seq_no, txn in self._transactionLog.get_range(frm, to))
 
     @staticmethod
     def hashToStr(h):

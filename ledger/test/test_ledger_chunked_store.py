@@ -1,5 +1,3 @@
-import string
-import types
 from binascii import hexlify
 
 import pytest
@@ -9,6 +7,7 @@ from ledger.ledger import Ledger
 from ledger.serializers.json_serializer import JsonSerializer
 from ledger.stores.chunked_file_store import ChunkedFileStore
 from ledger.stores.file_hash_store import FileHashStore
+from ledger.test.helper import check_ledger_generator
 from ledger.test.test_file_hash_store import generateHashes
 
 chunk_size = 5
@@ -29,7 +28,7 @@ def ledger(tempdir):
     return ledger
 
 
-def test_add_txns(tempdir, ledger):
+def test_add_get_txns(tempdir, ledger):
     txns = []
     hashes = [hexlify(h).decode() for h in generateHashes(60)]
     for i in range(20):
@@ -42,18 +41,19 @@ def test_add_txns(tempdir, ledger):
     for txn in txns:
         ledger.add(txn)
 
-    for s, t in ledger.getAllTxn(frm=1, to=20).items():
-        s = int(s)
+    check_ledger_generator(ledger)
+
+    for s, t in ledger.getAllTxn(frm=1, to=20):
         assert txns[s-1] == t
 
-    for s, t in ledger.getAllTxn(frm=3, to=8).items():
-        s = int(s)
+    for s, t in ledger.getAllTxn(frm=3, to=8):
         assert txns[s-1] == t
 
-    for s, t in ledger.getAllTxn(frm=5, to=17).items():
-        s = int(s)
+    for s, t in ledger.getAllTxn(frm=5, to=17):
         assert txns[s-1] == t
 
-    for s, t in ledger.getAllTxn(frm=6, to=10).items():
-        s = int(s)
+    for s, t in ledger.getAllTxn(frm=6, to=10):
+        assert txns[s-1] == t
+
+    for s, t in ledger.getAllTxn(frm=3, to=3):
         assert txns[s-1] == t

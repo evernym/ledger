@@ -1,6 +1,7 @@
 import os
 import shutil
-from typing import List
+from itertools import chain
+from typing import List, Generator
 from ledger.stores.file_store import FileStore
 from ledger.stores.text_file_store import TextFileStore
 
@@ -153,6 +154,8 @@ class ChunkedFileStore(FileStore):
         :return:
         """
         key = int(key)
+        if key == 0:
+            return 1, 0
         remainder = key % self.chunkSize
         addend = ChunkedFileStore.firstChunkIndex
         chunk_no = key - remainder + addend if remainder \
@@ -188,20 +191,17 @@ class ChunkedFileStore(FileStore):
             os.remove(os.path.join(self.dataDir, f))
         self._useLatestChunk()
 
-    def _getLines(self) -> List[str]:
+    def _lines(self):
         """
-        Lists lines in a store (all chunks)
+        Lines in a store (all chunks)
 
         :return: lines
         """
 
-        allLines = []
         chunkIndices = self._listChunks()
         for chunkIndex in chunkIndices:
             with self._openChunk(chunkIndex) as chunk:
-                # implies that getLines is logically protected, not private
-                allLines.extend(chunk._getLines())
-        return allLines
+                yield from chunk._lines()
 
     def open(self) -> None:
         self._useLatestChunk()
@@ -236,72 +236,70 @@ class ChunkedFileStore(FileStore):
         if not (includeKey or includeValue):
             raise ValueError("At least one of includeKey or includeValue "
                              "should be true")
-        lines = self._getLines()
+        lines = self._lines()
         if includeKey and includeValue:
             return self._keyValueIterator(lines, prefix=prefix)
         if includeValue:
             return self._valueIterator(lines, prefix=prefix)
         return self._keyIterator(lines, prefix=prefix)
 
-    def get_range(self, start, end):
-        assert start <= end
+    def get_range(self, start=None, end=None):
+        self.is_valid_range(start, end)
 
-        if start == end:
+        if not self.numKeys:
+            return
+
+        if start and end and start == end:
             res = self.get(start)
-            return [(start, res)] if res is not None else []
-
-        start_chunk_no, start_offset = self._get_key_location(start)
-
-        end_chunk_no, end_offset = self._get_key_location(end)
-        if start_chunk_no == end_chunk_no:
-            assert end_offset >= start_offset
-            with self._openChunk(start_chunk_no) as chunk:
-                lines = [(self._parse_line(j, key=str(i))) for i, j in
-                         zip(range(start, end+1),
-                             chunk._getLines()[start_offset-1:end_offset])]
+            if res:
+                yield (start, res)
         else:
-            lines = []
-            current_chunk_no = start_chunk_no
-            while current_chunk_no <= end_chunk_no:
-                with self._openChunk(current_chunk_no) as chunk:
-                    if current_chunk_no == start_chunk_no:
-                        current_chunk_lines = chunk._getLines()[start_offset - 1:]
-                        lines.extend(
-                            [(self._parse_line(j, key=str(i))) for i, j in
-                             zip(range(start, start+len(current_chunk_lines)+1),
-                                 current_chunk_lines)]
-                        )
-                    elif current_chunk_no == end_chunk_no:
-                        current_chunk_lines = chunk._getLines()[:end_offset]
-                        lines.extend(
-                            [(self._parse_line(j, key=str(i))) for i, j in
-                             zip(range(end-len(current_chunk_lines)+1, end+1),
-                                 current_chunk_lines)]
-                        )
-                    else:
-                        current_chunk_lines = chunk._getLines()
-                        lines.extend(
-                            [(self._parse_line(j, key=str(i))) for i, j in
-                             zip(range(current_chunk_no,
-                                       current_chunk_no + self.chunkSize + 1),
-                                 current_chunk_lines)]
-                        )
-                current_chunk_no += self.chunkSize
-        return lines
+            if start is None:
+                start = 1
+            if end is None:
+                end = self.numKeys
+            start_chunk_no, start_offset = self._get_key_location(start)
+            end_chunk_no, end_offset = self._get_key_location(end)
+
+            if start_chunk_no == end_chunk_no:
+                # If entries lie in the same range
+                assert end_offset >= start_offset
+                with self._openChunk(start_chunk_no) as chunk:
+                    yield from zip(range(start, end+1),
+                                   (l for _, l in chunk.get_range(start_offset,
+                                                                  end_offset)))
+            else:
+                current_chunk_no = start_chunk_no
+                while current_chunk_no <= end_chunk_no:
+                    with self._openChunk(current_chunk_no) as chunk:
+                        if current_chunk_no == start_chunk_no:
+                            yield from ((current_chunk_no + k - 1, l) for k, l in
+                                        chunk.get_range(start=start_offset))
+                        elif current_chunk_no == end_chunk_no:
+                            yield from ((current_chunk_no + k - 1, l)
+                                        for k, l in chunk.get_range(end=end_offset))
+                        else:
+                            yield from ((current_chunk_no + k - 1, l)
+                                        for k, l in chunk.get_range(1, self.chunkSize))
+                    current_chunk_no += self.chunkSize
 
     def appendNewLineIfReq(self):
         self._useLatestChunk()
         self.currentChunk.appendNewLineIfReq()
 
     @property
-    def numKeys(self):
+    def numKeys(self) -> int:
+        """
+        This will iterate only over the last chunk since the name of the last
+        chunk indicates how many lines in total exist in all other chunks
+        """
         chunks = self._listChunks()
         num_chunks = len(chunks)
         if num_chunks == 0:
             return 0
         count = (num_chunks-1)*self.chunkSize
         last_chunk = self._openChunk(chunks[-1])
-        count += len(last_chunk._getLines())
+        count += sum(1 for _ in last_chunk._lines())
         last_chunk.close()
         return count
 

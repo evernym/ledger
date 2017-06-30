@@ -26,6 +26,7 @@ class TextFileStore(FileStore):
         self.dbPath = os.path.join(os.path.expanduser(dbDir), dbName)
         self.dbFile = open(self.dbPath, mode="a+")
 
-    def _getLines(self):
+    def _lines(self):
         self.dbFile.seek(0)
-        return list(store_utils.cleanLines(self.dbFile))
+        return store_utils.cleanLines(self.dbFile)
+

@@ -1,4 +1,5 @@
 import os
+import types
 
 from ledger.util import STH
 from ledger.ledger import Ledger
@@ -31,7 +32,14 @@ def checkConsistency(tree, verifier):
                                                 proof=proof)
 
 
+def check_ledger_generator(ledger):
+    size = ledger.size
+    assert isinstance(ledger.getAllTxn(frm=1, to=size), types.GeneratorType)
+    assert isinstance(ledger.getAllTxn(frm=1), types.GeneratorType)
+    assert isinstance(ledger.getAllTxn(to=size), types.GeneratorType)
+    assert isinstance(ledger.getAllTxn(), types.GeneratorType)
+
+
 class NoTransactionRecoveryLedger(Ledger):
     def recoverTreeFromTxnLog(self):
         pass
-

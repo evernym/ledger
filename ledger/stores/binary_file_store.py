@@ -41,7 +41,7 @@ class BinaryFileStore(FileStore):
 
         return super().iterator(includeKey, includeValue, prefix)
 
-    def _getLines(self):
+    def _lines(self):
         return (line.strip(self.lineSep) for line in
                 self.dbFile.read().split(self.lineSep)
                 if len(line.strip(self.lineSep)) != 0)

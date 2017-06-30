@@ -10,7 +10,8 @@ from ledger.serializers.json_serializer import JsonSerializer
 from ledger.serializers.compact_serializer import CompactSerializer
 from ledger.compact_merkle_tree import CompactMerkleTree
 from ledger.stores.file_hash_store import FileHashStore
-from ledger.test.helper import NoTransactionRecoveryLedger
+from ledger.test.helper import NoTransactionRecoveryLedger, \
+    check_ledger_generator
 from ledger.util import ConsistencyVerificationFailed, F
 
 
@@ -66,6 +67,7 @@ def testAddTxn(tempdir, ledger):
     txn2[F.seqNo.name] = 2
     assert txn1 == ledger[1]
     assert txn2 == ledger[2]
+    check_ledger_generator(ledger)
 
 
 def testQueryMerkleInfo(tempdir, ledger):
@@ -117,6 +119,7 @@ def testRecoverLedgerFromHashStore(tempdir):
     assert restartedLedger.tree.hashes == updatedTree.hashes
     assert restartedLedger.tree.root_hash == updatedTree.root_hash
 
+
 def testRecoverLedgerNewFieldsToTxnsAdded(tempdir):
     fhs = FileHashStore(tempdir)
     tree = CompactMerkleTree(hashStore=fhs)
@@ -140,6 +143,7 @@ def testRecoverLedgerNewFieldsToTxnsAdded(tempdir):
     assert restartedLedger.root_hash == ledger.root_hash
     assert restartedLedger.tree.hashes == updatedTree.hashes
     assert restartedLedger.tree.root_hash == updatedTree.root_hash
+
 
 def testConsistencyVerificationOnStartupCase1(tempdir):
     """
