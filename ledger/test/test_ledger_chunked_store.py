@@ -1,5 +1,6 @@
 from binascii import hexlify
 
+import itertools
 import pytest
 
 from ledger.compact_merkle_tree import CompactMerkleTree
@@ -69,3 +70,8 @@ def test_add_get_txns(tempdir, ledger):
 
     with pytest.raises(AssertionError):
         list(ledger.getAllTxn(frm=3, to=1))
+
+    for frm, to in [(i, j) for i, j in itertools.permutations(range(1, 21),
+                                                              2) if i <= j]:
+        for s, t in ledger.getAllTxn(frm=frm, to=to):
+            assert txns[s-1] == t

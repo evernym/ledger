@@ -4,6 +4,7 @@ import random
 import math
 from time import perf_counter
 
+import itertools
 import pytest
 
 from ledger.stores.chunked_file_store import ChunkedFileStore
@@ -110,6 +111,11 @@ def test_get_range(populatedChunkedFileStore):
 
     with pytest.raises(AssertionError):
         list(populatedChunkedFileStore.get_range(5, 1))
+
+    for frm, to in [(i, j) for i, j in itertools.permutations(
+            range(1, dataSize+1), 2) if i <= j]:
+        for k, v in populatedChunkedFileStore.get_range(frm, to):
+            assert data[int(k) - 1] == v
 
 
 def test_chunk_size_limitation_when_default_file_used(tmpdir):
