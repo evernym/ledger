@@ -108,6 +108,9 @@ def test_get_range(populatedChunkedFileStore):
         num += 1
     assert num == 4*chunkSize
 
+    with pytest.raises(AssertionError):
+        list(populatedChunkedFileStore.get_range(5, 1))
+
 
 def test_chunk_size_limitation_when_default_file_used(tmpdir):
     """

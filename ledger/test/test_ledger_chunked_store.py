@@ -57,3 +57,15 @@ def test_add_get_txns(tempdir, ledger):
 
     for s, t in ledger.getAllTxn(frm=3, to=3):
         assert txns[s-1] == t
+
+    for s, t in ledger.getAllTxn(frm=3):
+        assert txns[s-1] == t
+
+    for s, t in ledger.getAllTxn(to=10):
+        assert txns[s-1] == t
+
+    for s, t in ledger.getAllTxn():
+        assert txns[s-1] == t
+
+    with pytest.raises(AssertionError):
+        list(ledger.getAllTxn(frm=3, to=1))
